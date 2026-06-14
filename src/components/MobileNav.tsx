@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { logoutAction } from "@/app/actions/auth";
-import { LogoMark } from "@/components/icons";
+import { CloseIcon, LogoMark, MenuIcon } from "@/components/icons";
 import { getNavItems } from "@/components/navItems";
 import styles from "@/app/app.module.css";
 
@@ -40,7 +40,11 @@ export default function MobileNav({
         aria-label={open ? "Close menu" : "Open menu"}
         onClick={() => setOpen((value) => !value)}
       >
-        {open ? "✕" : "☰"}
+        {open ? (
+          <CloseIcon width={22} height={22} />
+        ) : (
+          <MenuIcon width={22} height={22} />
+        )}
       </button>
 
       {open ? (
