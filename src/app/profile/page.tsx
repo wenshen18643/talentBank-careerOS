@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import ProfileForm from "@/components/ProfileForm";
+import SyncSkillsButton from "@/components/SyncSkillsButton";
 import { getCurrentUser } from "@/lib/auth";
 import { countOpenRequests } from "@/lib/matching";
 import appStyles from "@/app/app.module.css";
@@ -21,6 +22,7 @@ export default async function ProfilePage() {
           roles. Both come from a shared list so matches are exact, not guesswork.
         </p>
       </header>
+      <SyncSkillsButton />
       <ProfileForm user={user} />
     </AppShell>
   );

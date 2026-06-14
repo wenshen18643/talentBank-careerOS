@@ -50,7 +50,12 @@ export default function ProfileForm({ user }: { user: SessionUser }) {
       </div>
 
       <div className="field">
-        <SkillPicker name="skills" legend="Your skills" selected={user.skills} />
+        <SkillPicker
+          key={user.skills.join("|")}
+          name="skills"
+          legend="Your skills"
+          selected={user.skills}
+        />
         <span className={styles.hint}>
           Pick the skills you can genuinely demonstrate. Employers match against these.
         </span>

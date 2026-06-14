@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { createEntry } from "@/lib/entries";
-import { importResume } from "@/lib/kimi";
+import { importResume, inferProfileSkills } from "@/lib/kimi";
+import { addCandidateSkills } from "@/lib/profile";
 import { extractResumeText } from "@/lib/resume-extract";
 
 /**
@@ -55,16 +56,24 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const created = await Promise.all(
-    drafts.map((draft) =>
-      createEntry({
-        user_id: user.id,
-        type: draft.type,
-        raw_text: draft.raw_text,
-        occurred_at: null,
-      }),
+  const [created, { skills: inferred_skills }] = await Promise.all([
+    Promise.all(
+      drafts.map((draft) =>
+        createEntry({
+          user_id: user.id,
+          type: draft.type,
+          raw_text: draft.raw_text,
+          occurred_at: null,
+        }),
+      ),
     ),
-  );
+    inferProfileSkills(resume_text),
+  ]);
 
-  return NextResponse.json({ entries: created, count: created.length, source }, { status: 201 });
+  const skills_added = await addCandidateSkills(user.id, inferred_skills);
+
+  return NextResponse.json(
+    { entries: created, count: created.length, source, skills_added },
+    { status: 201 },
+  );
 }

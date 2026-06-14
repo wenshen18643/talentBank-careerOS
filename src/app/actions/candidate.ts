@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
+import { listEntries } from "@/lib/entries";
+import { inferProfileSkills } from "@/lib/kimi";
 import {
   autoApply,
   findJobMatches,
@@ -11,7 +13,7 @@ import {
   type JobMatch,
 } from "@/lib/matching";
 import { addMessage } from "@/lib/messages";
-import { updateCandidateProfile } from "@/lib/profile";
+import { addCandidateSkills, updateCandidateProfile } from "@/lib/profile";
 
 export type ProfileState = { error: string | null; saved: boolean };
 
@@ -32,6 +34,37 @@ export async function updateProfileAction(
   revalidatePath("/discover");
   revalidatePath("/cv");
   return { error: null, saved: true };
+}
+
+export type SyncSkillsState = { ran: boolean; added: string[] };
+
+/**
+ * Backfill for résumés imported before skill inference existed: re-reads the
+ * candidate's ledger entries, infers their controlled-vocabulary skills, and
+ * adds any new ones to the profile. Safe to run repeatedly — only genuinely new
+ * skills are added, and it never removes a skill the candidate chose by hand.
+ */
+export async function syncSkillsFromLedgerAction(
+  _prev: SyncSkillsState,
+  _form_data: FormData,
+): Promise<SyncSkillsState> {
+  const user = await requireRole("candidate");
+  if (!user) return { ran: true, added: [] };
+
+  const entries = await listEntries(user.id);
+  const ledger_text = entries
+    .map((entry) => [entry.raw_text, entry.extracted?.bullet].filter(Boolean).join(" "))
+    .join("\n")
+    .trim();
+  if (ledger_text.length === 0) return { ran: true, added: [] };
+
+  const { skills: inferred } = await inferProfileSkills(ledger_text);
+  const added = await addCandidateSkills(user.id, inferred);
+
+  revalidatePath("/profile");
+  revalidatePath("/cv");
+  revalidatePath("/discover");
+  return { ran: true, added };
 }
 
 export async function raiseHandAction(form_data: FormData): Promise<void> {

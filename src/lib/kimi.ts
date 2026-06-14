@@ -20,6 +20,12 @@ import {
   parseImportResponse,
   type ImportedEntry,
 } from "@/lib/resume-core";
+import {
+  buildSkillMessages,
+  inferSkillsOffline,
+  parseSkillResponse,
+} from "@/lib/skill-infer";
+import { filterValidSkills } from "@/lib/taxonomy";
 
 /**
  * Kimi (Moonshot) client for the AI features. Both engines — the Living
@@ -46,6 +52,11 @@ export type MatchResult = {
 
 export type ImportResult = {
   entries: ImportedEntry[];
+  source: "kimi" | "offline";
+};
+
+export type SkillInferenceResult = {
+  skills: string[];
   source: "kimi" | "offline";
 };
 
@@ -100,6 +111,32 @@ export async function importResume(resume_text: string): Promise<ImportResult> {
     return { entries: parseImportResponse(content), source: "kimi" };
   } catch {
     return { entries: offlineImport(resume_text), source: "offline" };
+  }
+}
+
+/**
+ * Infers the candidate's controlled-vocabulary skills from résumé text. The
+ * offline keyword matcher is always run; when a key is set, the model's answer
+ * is merged with it for recall. Every result is forced through the taxonomy, so
+ * only on-list skills can ever surface.
+ */
+export async function inferProfileSkills(
+  resume_text: string,
+): Promise<SkillInferenceResult> {
+  const offline_skills = inferSkillsOffline(resume_text);
+  const api_key = getApiKey();
+  if (!api_key) {
+    return { skills: offline_skills, source: "offline" };
+  }
+  try {
+    const content = await chatJson(api_key, buildSkillMessages(resume_text));
+    const model_skills = parseSkillResponse(content);
+    return {
+      skills: filterValidSkills([...model_skills, ...offline_skills]),
+      source: "kimi",
+    };
+  } catch {
+    return { skills: offline_skills, source: "offline" };
   }
 }
 

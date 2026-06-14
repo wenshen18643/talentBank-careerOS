@@ -47,9 +47,15 @@ export default function ResumeImport({
         return;
       }
       onImported(data.entries as Entry[]);
+      const skills_added = (data.skills_added as string[] | undefined) ?? [];
+      const skills_note =
+        skills_added.length > 0
+          ? ` Added ${skills_added.length} profile ${skills_added.length === 1 ? "skill" : "skills"}: ${skills_added.join(", ")}.`
+          : "";
       setResult(
         `Imported ${data.count} ${data.count === 1 ? "entry" : "entries"}` +
-          (data.source === "offline" ? " (offline split — refine to sharpen)." : " via Kimi."),
+          (data.source === "offline" ? " (offline split — refine to sharpen)." : " via Kimi.") +
+          skills_note,
       );
       setPasted("");
       setFileName(null);
