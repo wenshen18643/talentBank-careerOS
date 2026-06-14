@@ -313,6 +313,96 @@ export async function listDiscoverJobs(
 }
 
 /**
+ * A single open role assessed for one candidate: the worded fit, the
+ * plain-language reason, and where they already stand in that role's pipeline.
+ * The candidate-facing analogue of an employer's surfaced `Match`.
+ */
+export type JobMatch = {
+  job_id: number;
+  title: string;
+  employer_company: string | null;
+  location: string | null;
+  matched_skills: string[];
+  strength: MatchStrength;
+  reason: string;
+  pros: string[];
+  cons: string[];
+  source: "kimi" | "offline";
+  pipeline_status: "none" | "surfaced" | "approved" | "rejected";
+};
+
+/**
+ * Candidate-side mirror of the employer engine. For every open role the
+ * candidate's on-list skills qualify for, it generates a worded assessment
+ * (Kimi or offline) grounded in their logged work — their experience and
+ * imported resume — and returns the credible fits ranked strongest first.
+ *
+ * Deliberately read-only: surfacing into an employer's pipeline is the explicit
+ * `raiseHand` step, so running this never spams anyone. Stretch fits are
+ * dropped for the same honesty the employer engine applies.
+ */
+export async function findJobMatches(candidate_id: number): Promise<JobMatch[]> {
+  const profile = await getCandidateProfile(candidate_id);
+  if (!profile || profile.skills.length === 0) return [];
+
+  const { data: rows } = await supabase
+    .from("jobs")
+    .select("id, users!inner(company)")
+    .eq("status", "open")
+    .order("created_at", { ascending: false });
+  const typedRows =
+    (rows as unknown as Array<{ id: number; users: { company: string | null } }> | null) ?? [];
+
+  const { data: pipelineRows } = await supabase
+    .from("matches")
+    .select("job_id, status")
+    .eq("candidate_id", candidate_id);
+  const pipeline = new Map(
+    ((pipelineRows as Array<{ job_id: number; status: string }> | null) ?? []).map(
+      (row) => [row.job_id, row.status],
+    ),
+  );
+
+  const result: JobMatch[] = [];
+  for (const row of typedRows) {
+    const job = await getJobById(row.id);
+    if (!job) continue;
+    const pre = prequalify(job, profile);
+    if (!pre.qualifies) continue;
+
+    const { assessment, source } = await assessMatch(job, profile, pre);
+    if (assessment.strength === "stretch") continue;
+
+    const status = pipeline.get(job.id);
+    result.push({
+      job_id: job.id,
+      title: job.title,
+      employer_company: row.users?.company ?? null,
+      location: job.location,
+      matched_skills: [...pre.matched_required, ...pre.matched_nice],
+      strength: assessment.strength,
+      reason: assessment.reason,
+      pros: assessment.pros,
+      cons: assessment.cons,
+      source,
+      pipeline_status:
+        status === "approved"
+          ? "approved"
+          : status === "rejected"
+            ? "rejected"
+            : status === "surfaced"
+              ? "surfaced"
+              : "none",
+    });
+  }
+
+  const strength_rank = { strong: 0, promising: 1, stretch: 2 };
+  return result.sort(
+    (a, b) => strength_rank[a.strength] - strength_rank[b.strength],
+  );
+}
+
+/**
  * Candidate-initiated interest. Surfaces the candidate into a job's pipeline
  * flagged `candidate`, but only when they genuinely qualify — express-interest
  * is gated by the same skill match as the engine, so it can't become spam.

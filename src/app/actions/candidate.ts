@@ -2,7 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
-import { getMatchForCandidate, raiseHand, setCandidateReply } from "@/lib/matching";
+import {
+  findJobMatches,
+  getMatchForCandidate,
+  raiseHand,
+  setCandidateReply,
+  type JobMatch,
+} from "@/lib/matching";
 import { addMessage } from "@/lib/messages";
 import { updateCandidateProfile } from "@/lib/profile";
 
@@ -34,6 +40,42 @@ export async function raiseHandAction(form_data: FormData): Promise<void> {
   if (!Number.isInteger(job_id)) return;
   await raiseHand(user.id, job_id);
   revalidatePath("/discover");
+}
+
+export type FindJobsState = { ran: boolean; matches: JobMatch[] };
+
+/**
+ * Runs the candidate-side matching engine over open roles and returns the worded
+ * fits for rendering. Results are ephemeral by design — nothing is written until
+ * the candidate deliberately raises their hand on a role.
+ */
+export async function findJobMatchesAction(
+  _prev: FindJobsState,
+  _form_data: FormData,
+): Promise<FindJobsState> {
+  const user = await requireRole("candidate");
+  if (!user) return { ran: true, matches: [] };
+  return { ran: true, matches: await findJobMatches(user.id) };
+}
+
+export type RaiseHandState = { ok: boolean; message: string };
+
+/**
+ * Stateful raise-hand used by the assessed match cards so the button can report
+ * its own outcome inline (entered the pipeline, or why it couldn't).
+ */
+export async function expressInterestAction(
+  _prev: RaiseHandState,
+  form_data: FormData,
+): Promise<RaiseHandState> {
+  const user = await requireRole("candidate");
+  if (!user) return { ok: false, message: "Sign in as a candidate to do that." };
+  const job_id = Number(form_data.get("job_id"));
+  if (!Number.isInteger(job_id)) return { ok: false, message: "Unknown role." };
+
+  const result = await raiseHand(user.id, job_id);
+  revalidatePath("/discover");
+  return { ok: result.ok, message: result.reason };
 }
 
 /**

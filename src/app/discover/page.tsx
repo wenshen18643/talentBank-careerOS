@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
+import FindJobsWorkspace from "@/components/FindJobsWorkspace";
 import { getCurrentUser } from "@/lib/auth";
 import { countOpenRequests, listDiscoverJobs } from "@/lib/matching";
 import { raiseHandAction } from "@/app/actions/candidate";
@@ -43,16 +44,24 @@ export default async function DiscoverPage() {
             Set up your profile
           </Link>
         </div>
-      ) : jobs.length === 0 ? (
-        <div className={appStyles.empty}>
-          <h3>No matching roles open right now.</h3>
-          <p>
-            Nothing open fits your current skills. Broaden your profile or check
-            back — new roles match automatically.
-          </p>
-        </div>
       ) : (
-        <div className={styles.jobList}>
+        <>
+          <FindJobsWorkspace />
+
+          <section style={{ marginTop: "3rem" }}>
+            <h2 className={styles.pipelineTitle} style={{ fontSize: "1.4rem", marginBottom: "1.25rem" }}>
+              Browse roles you qualify for
+            </h2>
+            {jobs.length === 0 ? (
+              <div className={appStyles.empty}>
+                <h3>No matching roles open right now.</h3>
+                <p>
+                  Nothing open fits your current skills. Broaden your profile or
+                  check back — new roles match automatically.
+                </p>
+              </div>
+            ) : (
+              <div className={styles.jobList}>
           {jobs.map((job) => (
             <article key={job.id} className={styles.jobCard} style={{ cursor: "default" }}>
               <div className={styles.jobCardTop}>
@@ -91,9 +100,12 @@ export default async function DiscoverPage() {
                   </span>
                 )}
               </div>
-            </article>
-          ))}
-        </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        </>
       )}
     </AppShell>
   );
