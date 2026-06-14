@@ -1,31 +1,16 @@
 import Link from "next/link";
-import type { ComponentType, SVGProps } from "react";
 import { logoutAction } from "@/app/actions/auth";
 import type { SessionUser } from "@/lib/auth";
-import {
-  CompassIcon,
-  DocIcon,
-  GridIcon,
-  InboxIcon,
-  LedgerIcon,
-  LogoMark,
-  PlusIcon,
-  UserIcon,
-} from "@/components/icons";
+import { LogoMark } from "@/components/icons";
+import MobileNav from "@/components/MobileNav";
+import { getHomeHref, getNavItems } from "@/components/navItems";
 import styles from "@/app/app.module.css";
-
-type NavItem = {
-  key: string;
-  href: string;
-  label: string;
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
-  badge?: number;
-};
 
 /**
  * Authenticated workspace chrome. The navigation is role-aware: candidates get
  * their ledger and CV; recruiters get jobs and the pipeline. `active` highlights
- * the current section and `requestCount` badges a candidate's open requests.
+ * the current section and `requestCount` badges a candidate's open requests. The
+ * desktop sidebar collapses into a hamburger drawer on small screens.
  */
 export default function AppShell({
   user,
@@ -38,30 +23,18 @@ export default function AppShell({
   requestCount?: number;
   children: React.ReactNode;
 }) {
-  const home = user.role === "recruiter" ? "/employer" : "/dashboard";
-  const nav_items: NavItem[] =
-    user.role === "recruiter"
-      ? [
-          { key: "overview", href: "/employer", label: "Overview", icon: GridIcon },
-          { key: "new", href: "/employer/jobs/new", label: "Post a role", icon: PlusIcon },
-        ]
-      : [
-          { key: "overview", href: "/dashboard", label: "Overview", icon: GridIcon },
-          { key: "ledger", href: "/ledger", label: "Living Ledger", icon: LedgerIcon },
-          { key: "cv", href: "/cv", label: "Your CV", icon: DocIcon },
-          { key: "discover", href: "/discover", label: "Discover roles", icon: CompassIcon },
-          {
-            key: "requests",
-            href: "/requests",
-            label: "Requests",
-            icon: InboxIcon,
-            badge: requestCount,
-          },
-          { key: "profile", href: "/profile", label: "Profile", icon: UserIcon },
-        ];
+  const home = getHomeHref(user.role);
+  const nav_items = getNavItems(user.role, requestCount);
 
   return (
     <div className={styles.shell}>
+      <MobileNav
+        role={user.role}
+        active={active}
+        requestCount={requestCount}
+        home={home}
+      />
+
       <aside className={styles.sidebar}>
         <Link href={home} className={styles.brand}>
           <LogoMark className={styles.brandMark} />
