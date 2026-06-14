@@ -10,6 +10,9 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "format": "prettier --write \"{src,tests}/**/*.{ts,tsx,css}\"",
+    "format:check": "prettier --check \"{src,tests}/**/*.{ts,tsx,css}\"",
     "kimi:check": "node --env-file=.env scripts/check-kimi.mjs"
   },
   "dependencies": {
@@ -23,6 +26,8 @@
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "prettier": "^3.8.4",
     "typescript": "^5.7.0",
     "vitest": "^2.1.8"
   }

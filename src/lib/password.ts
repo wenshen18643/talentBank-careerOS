@@ -17,8 +17,5 @@ export function verifyPassword(plain_text: string, stored: string): boolean {
   if (!salt || !derived) return false;
   const candidate = scryptSync(plain_text, salt, 64);
   const expected = Buffer.from(derived, "hex");
-  return (
-    candidate.length === expected.length &&
-    timingSafeEqual(candidate, expected)
-  );
+  return candidate.length === expected.length && timingSafeEqual(candidate, expected);
 }

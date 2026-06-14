@@ -26,8 +26,8 @@ export default async function DashboardPage() {
       <header className={styles.pageHead}>
         <h1 className={styles.pageTitle}>Hello, {first_name}.</h1>
         <p className={styles.pageLede}>
-          Here&apos;s the state of your record. The more you log, the sharper the
-          long view gets.
+          Here&apos;s the state of your record. The more you log, the sharper the long
+          view gets.
         </p>
       </header>
 
@@ -94,8 +94,7 @@ export default async function DashboardPage() {
         <div className={styles.empty}>
           <h3>Your ledger is empty — that&apos;s the only thing to fix today.</h3>
           <p style={{ marginBottom: "1.5rem" }}>
-            Log one thing you did this week. Rough words are fine; refinement
-            comes later.
+            Log one thing you did this week. Rough words are fine; refinement comes later.
           </p>
           <Link href="/ledger" className="btn btn-primary">
             Write your first entry
@@ -110,7 +109,10 @@ export default async function DashboardPage() {
               <li key={entry.id} className={styles.quickItem}>
                 <div>
                   <strong>{entry.title ?? entry.raw_text.slice(0, 48)}</strong>
-                  <div className="muted" style={{ fontSize: "0.85rem", marginTop: "0.15rem" }}>
+                  <div
+                    className="muted"
+                    style={{ fontSize: "0.85rem", marginTop: "0.15rem" }}
+                  >
                     <span className="tag" style={{ marginRight: "0.5rem" }}>
                       {entry.type}
                     </span>
@@ -120,7 +122,14 @@ export default async function DashboardPage() {
               </li>
             ))}
           </ul>
-          <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.7rem", flexWrap: "wrap" }}>
+          <div
+            style={{
+              marginTop: "1.25rem",
+              display: "flex",
+              gap: "0.7rem",
+              flexWrap: "wrap",
+            }}
+          >
             <Link href="/ledger" className="btn btn-ghost">
               Open the ledger
             </Link>

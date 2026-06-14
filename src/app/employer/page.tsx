@@ -17,8 +17,11 @@ export default async function EmployerOverviewPage() {
 
   const jobs = await listJobs(user.id);
   const countsByJob = new Map(
-    (await Promise.all(jobs.map(async (job) => ({ job, counts: await matchCountsByStatus(job.id) }))))
-      .map(({ job, counts }) => [job.id, counts]),
+    (
+      await Promise.all(
+        jobs.map(async (job) => ({ job, counts: await matchCountsByStatus(job.id) })),
+      )
+    ).map(({ job, counts }) => [job.id, counts]),
   );
 
   return (
@@ -26,9 +29,9 @@ export default async function EmployerOverviewPage() {
       <header className={appStyles.pageHead}>
         <h1 className={appStyles.pageTitle}>Your roles</h1>
         <p className={appStyles.pageLede}>
-          Define a role and its criteria once. The engine watches the candidate
-          pool and surfaces people whose logged work fits — with a reason you can
-          read, never a black-box score.
+          Define a role and its criteria once. The engine watches the candidate pool and
+          surfaces people whose logged work fits — with a reason you can read, never a
+          black-box score.
         </p>
       </header>
 
@@ -55,14 +58,22 @@ export default async function EmployerOverviewPage() {
             {jobs.map((job) => {
               const counts = countsByJob.get(job.id) ?? { surfaced: 0, approved: 0 };
               return (
-                <Link key={job.id} href={`/employer/jobs/${job.id}`} className={styles.jobCard}>
+                <Link
+                  key={job.id}
+                  href={`/employer/jobs/${job.id}`}
+                  className={styles.jobCard}
+                >
                   <div className={styles.jobCardTop}>
                     <h2 className={styles.jobTitle}>{job.title}</h2>
-                    <ArrowIcon width={20} height={20} style={{ color: "var(--accent)" }} />
+                    <ArrowIcon
+                      width={20}
+                      height={20}
+                      style={{ color: "var(--accent)" }}
+                    />
                   </div>
                   <p className={styles.jobMeta}>
-                    {job.location ?? "Location flexible"} ·{" "}
-                    {job.required_skills.length} required skill
+                    {job.location ?? "Location flexible"} · {job.required_skills.length}{" "}
+                    required skill
                     {job.required_skills.length === 1 ? "" : "s"}
                   </p>
                   <div className={styles.jobCounts}>

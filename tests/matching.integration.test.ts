@@ -66,7 +66,11 @@ describe.skipIf(!has_supabase_credentials)("matching engine (integration)", () =
     await updateCandidateProfile(candidate.id, {
       headline: "Senior Engineer",
       location: "Kuala Lumpur",
-      skills: ["Payments Infrastructure", "Reliability Engineering", "Distributed Systems"],
+      skills: [
+        "Payments Infrastructure",
+        "Reliability Engineering",
+        "Distributed Systems",
+      ],
     });
 
     const entry = await createEntry({
@@ -135,7 +139,8 @@ describe.skipIf(!has_supabase_credentials)("matching engine (integration)", () =
     const { createUser } = await import("@/lib/users");
     const { updateCandidateProfile } = await import("@/lib/profile");
     const { createJob } = await import("@/lib/jobs");
-    const { listDiscoverJobs, raiseHand, listMatchesForJob } = await import("@/lib/matching");
+    const { listDiscoverJobs, raiseHand, listMatchesForJob } =
+      await import("@/lib/matching");
 
     const candidate = await createUser({
       email: testEmail("cand2"),
@@ -168,7 +173,9 @@ describe.skipIf(!has_supabase_credentials)("matching engine (integration)", () =
     });
 
     const discover = await listDiscoverJobs(candidate.id);
-    expect(discover.some((j) => j.id === job.id && j.pipeline_status === "none")).toBe(true);
+    expect(discover.some((j) => j.id === job.id && j.pipeline_status === "none")).toBe(
+      true,
+    );
 
     const result = await raiseHand(candidate.id, job.id);
     expect(result.ok).toBe(true);

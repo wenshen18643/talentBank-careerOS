@@ -14,10 +14,13 @@ import styles from "@/app/employer.module.css";
  * surface, so they must come from the shared list, not free input.
  */
 export default function ProfileForm({ user }: { user: SessionUser }) {
-  const [state, formAction] = useActionState<ProfileState, FormData>(updateProfileAction, {
-    error: null,
-    saved: false,
-  });
+  const [state, formAction] = useActionState<ProfileState, FormData>(
+    updateProfileAction,
+    {
+      error: null,
+      saved: false,
+    },
+  );
 
   return (
     <form action={formAction} className={styles.form}>

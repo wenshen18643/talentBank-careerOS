@@ -1,10 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import {
-  expressInterestAction,
-  type RaiseHandState,
-} from "@/app/actions/candidate";
+import { expressInterestAction, type RaiseHandState } from "@/app/actions/candidate";
 import styles from "@/app/employer.module.css";
 
 const initial_state: RaiseHandState = { ok: false, message: "" };

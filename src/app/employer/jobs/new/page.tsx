@@ -17,8 +17,8 @@ export default async function NewJobPage() {
       <header className={appStyles.pageHead}>
         <h1 className={appStyles.pageTitle}>Post a role</h1>
         <p className={appStyles.pageLede}>
-          The more honestly you describe the trajectory — not just the skill
-          checklist — the better the matches and the clearer their reasons.
+          The more honestly you describe the trajectory — not just the skill checklist —
+          the better the matches and the clearer their reasons.
         </p>
       </header>
       <JobForm action={createJobAction} submitLabel="Create role" />

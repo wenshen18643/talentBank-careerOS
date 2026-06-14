@@ -44,9 +44,9 @@ export default function LandingPage() {
               Your career is a 40-year arc. Most tools see <em>one job.</em>
             </h1>
             <p className={styles.heroLede}>
-              Career OS is a living record of what you actually did — turned into
-              a CV that tells the truth, and matching that looks forward to where
-              you&apos;re headed, not backward at your last title.
+              Career OS is a living record of what you actually did — turned into a CV
+              that tells the truth, and matching that looks forward to where you&apos;re
+              headed, not backward at your last title.
             </p>
             <div className={styles.heroActions}>
               <Link href="/signup" className="btn btn-primary">
@@ -58,8 +58,8 @@ export default function LandingPage() {
               </Link>
             </div>
             <p className={styles.heroNote}>
-              No credit card. Logs stay yours. Employers only see you once you
-              match and you approve.
+              No credit card. Logs stay yours. Employers only see you once you match and
+              you approve.
             </p>
           </div>
           <TrajectoryScene />
@@ -69,8 +69,8 @@ export default function LandingPage() {
           <div className={styles.sectionHead}>
             <h2>Four honest promises</h2>
             <p>
-              The recruitment internet is loud, retroactive, and cynical. Career
-              OS is built on the opposite instincts.
+              The recruitment internet is loud, retroactive, and cynical. Career OS is
+              built on the opposite instincts.
             </p>
           </div>
           <div className={styles.promises}>
@@ -95,8 +95,8 @@ export default function LandingPage() {
                   Most CVs are written from memory, stressed, the night before an
                   application. Yours is written continuously — a running record of
                   projects, decisions, and the moments you led. Log it rough; the
-                  Improve&nbsp;&amp; Expand engine turns it into a bullet that
-                  earns its place, without inventing a single number.
+                  Improve&nbsp;&amp; Expand engine turns it into a bullet that earns its
+                  place, without inventing a single number.
                 </p>
               </div>
               <LedgerPreview />
@@ -107,22 +107,46 @@ export default function LandingPage() {
         <section id="honest" className={`container ${styles.section}`}>
           <div className={styles.split}>
             <div>
-              <h2 style={{ fontSize: "clamp(1.9rem, 3.6vw, 2.9rem)", letterSpacing: "-0.022em" }}>
+              <h2
+                style={{
+                  fontSize: "clamp(1.9rem, 3.6vw, 2.9rem)",
+                  letterSpacing: "-0.022em",
+                }}
+              >
                 Matching that respects where you&apos;re going
               </h2>
-              <p className="muted" style={{ marginTop: "1rem", fontSize: "1.05rem", maxWidth: "52ch" }}>
-                Traditional hiring screens for the last job you did, punishing
-                anyone trying to switch. Career OS reads the trajectory in your
-                ledger against an employer&apos;s real criteria — and you stay
-                invisible until there&apos;s a genuine match and you say yes.
+              <p
+                className="muted"
+                style={{ marginTop: "1rem", fontSize: "1.05rem", maxWidth: "52ch" }}
+              >
+                Traditional hiring screens for the last job you did, punishing anyone
+                trying to switch. Career OS reads the trajectory in your ledger against an
+                employer&apos;s real criteria — and you stay invisible until there&apos;s
+                a genuine match and you say yes.
               </p>
-              <ul style={{ marginTop: "1.5rem", paddingLeft: 0, listStyle: "none", display: "grid", gap: "0.9rem" }}>
+              <ul
+                style={{
+                  marginTop: "1.5rem",
+                  paddingLeft: 0,
+                  listStyle: "none",
+                  display: "grid",
+                  gap: "0.9rem",
+                }}
+              >
                 {[
                   "You are never dumped into a pipeline without consenting.",
                   "Employers see a reason for the match, not just a score.",
                   "Outreach is one deliberate, human click — never a blast.",
                 ].map((line) => (
-                  <li key={line} style={{ display: "grid", gridTemplateColumns: "1.4rem 1fr", gap: "0.6rem", color: "var(--ink-soft)" }}>
+                  <li
+                    key={line}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1.4rem 1fr",
+                      gap: "0.6rem",
+                      color: "var(--ink-soft)",
+                    }}
+                  >
                     <span style={{ color: "var(--accent)" }} aria-hidden>
                       ◆
                     </span>
@@ -134,13 +158,13 @@ export default function LandingPage() {
             <div className={styles.ledgerCard}>
               <span className="tag">Why this match</span>
               <p style={{ fontSize: "1.05rem", lineHeight: 1.55 }}>
-                &ldquo;Three logged projects show ownership of payments
-                reliability at growing scale — the exact arc this Staff role is
-                hiring for, even though their current title is Senior.&rdquo;
+                &ldquo;Three logged projects show ownership of payments reliability at
+                growing scale — the exact arc this Staff role is hiring for, even though
+                their current title is Senior.&rdquo;
               </p>
               <p className="muted" style={{ fontSize: "0.9rem" }}>
-                Confidence: stated plainly, with the two assumptions it rests on —
-                not hidden behind a number.
+                Confidence: stated plainly, with the two assumptions it rests on — not
+                hidden behind a number.
               </p>
             </div>
           </div>
@@ -149,7 +173,15 @@ export default function LandingPage() {
         <section className={`container ${styles.cta}`}>
           <h2>Start the record you&apos;ll be glad you kept.</h2>
           <p>Five minutes today beats a panicked rewrite the night before.</p>
-          <div style={{ marginTop: "2rem", display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
+          <div
+            style={{
+              marginTop: "2rem",
+              display: "flex",
+              gap: "0.8rem",
+              justifyContent: "center",
+              flexWrap: "wrap",
+            }}
+          >
             <Link href="/signup" className="btn btn-primary">
               Create your ledger
               <ArrowIcon width={18} height={18} />
@@ -177,14 +209,8 @@ function TrajectoryScene() {
         viewBox="0 0 400 352"
         preserveAspectRatio="xMidYMid meet"
       >
-        <path
-          className={styles.pathGhost}
-          d="M40 250 C 120 250, 150 220, 360 220"
-        />
-        <path
-          className={styles.pathGhost}
-          d="M40 250 C 130 250, 180 170, 360 90"
-        />
+        <path className={styles.pathGhost} d="M40 250 C 120 250, 150 220, 360 220" />
+        <path className={styles.pathGhost} d="M40 250 C 130 250, 180 170, 360 90" />
         <path
           className={styles.path}
           pathLength={1}
@@ -217,15 +243,15 @@ function LedgerPreview() {
       <div>
         <span className="tag">Raw log · 30 seconds</span>
         <p className={styles.ledgerRaw} style={{ marginTop: "0.6rem" }}>
-          &ldquo;spent q3 fixing our checkout. it kept timing out at peak. moved
-          to a queue, got error rate way down, fewer support tickets.&rdquo;
+          &ldquo;spent q3 fixing our checkout. it kept timing out at peak. moved to a
+          queue, got error rate way down, fewer support tickets.&rdquo;
         </p>
       </div>
       <span className={styles.ledgerArrow}>Improve &amp; Expand ↓</span>
       <div>
         <p className={styles.ledgerBullet}>
-          Re-architected a failing checkout flow onto an async queue, cutting
-          peak-hour payment errors and the support load that followed.
+          Re-architected a failing checkout flow onto an async queue, cutting peak-hour
+          payment errors and the support load that followed.
         </p>
         <div className={styles.metricRow} style={{ marginTop: "0.7rem" }}>
           <span className="tag">reliability</span>

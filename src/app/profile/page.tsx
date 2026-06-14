@@ -18,8 +18,8 @@ export default async function ProfilePage() {
       <header className={appStyles.pageHead}>
         <h1 className={appStyles.pageTitle}>Your profile</h1>
         <p className={appStyles.pageLede}>
-          Your skills and location are how employers find you and how you discover
-          roles. Both come from a shared list so matches are exact, not guesswork.
+          Your skills and location are how employers find you and how you discover roles.
+          Both come from a shared list so matches are exact, not guesswork.
         </p>
       </header>
       <SyncSkillsButton />

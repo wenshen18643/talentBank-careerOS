@@ -42,9 +42,7 @@ function readSignedSession(token: string | undefined): number | null {
   if (!token) return null;
   const [payload, signature] = token.split(".");
   if (!payload || !signature) return null;
-  const expected = createHmac("sha256", getSessionSecret())
-    .update(payload)
-    .digest("hex");
+  const expected = createHmac("sha256", getSessionSecret()).update(payload).digest("hex");
   const a = Buffer.from(signature);
   const b = Buffer.from(expected);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
@@ -75,9 +73,7 @@ export async function destroySession(): Promise<void> {
  */
 export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   const cookie_store = await cookies();
-  const user_id = readSignedSession(
-    cookie_store.get(session_cookie_name)?.value,
-  );
+  const user_id = readSignedSession(cookie_store.get(session_cookie_name)?.value);
   if (user_id === null) return null;
 
   const { data: row } = await supabase
@@ -105,7 +101,9 @@ function parseSkills(raw: string): string[] {
  * Returns the current user only if they hold the required role; otherwise null.
  * Pages use this to enforce the candidate / recruiter split before rendering.
  */
-export async function requireRole(role: "candidate" | "recruiter"): Promise<SessionUser | null> {
+export async function requireRole(
+  role: "candidate" | "recruiter",
+): Promise<SessionUser | null> {
   const user = await getCurrentUser();
   return user && user.role === role ? user : null;
 }

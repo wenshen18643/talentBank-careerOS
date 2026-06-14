@@ -120,7 +120,8 @@ button {
   font-weight: 500;
   font-size: 0.95rem;
   line-height: 1;
-  transition: background 0.18s var(--ease-out-quart),
+  transition:
+    background 0.18s var(--ease-out-quart),
     border-color 0.18s var(--ease-out-quart),
     transform 0.18s var(--ease-out-quart);
 }
@@ -187,7 +188,8 @@ button {
   background: var(--surface-raised);
   color: var(--ink);
   font: inherit;
-  transition: border-color 0.16s var(--ease-out-quart),
+  transition:
+    border-color 0.16s var(--ease-out-quart),
     box-shadow 0.16s var(--ease-out-quart);
 }
 

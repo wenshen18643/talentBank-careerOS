@@ -18,8 +18,10 @@ export type ImportedEntry = {
 const max_entries = 40;
 const max_raw_length = 4000;
 
-const leadership_pattern = /\b(led|managed|mentored|directed|headed|oversaw|coached|built (?:and|&) led)\b/i;
-const decision_pattern = /\b(decided|chose|prioriti[sz]ed|pivoted|migrated|deprecated|killed|sunset)\b/i;
+const leadership_pattern =
+  /\b(led|managed|mentored|directed|headed|oversaw|coached|built (?:and|&) led)\b/i;
+const decision_pattern =
+  /\b(decided|chose|prioriti[sz]ed|pivoted|migrated|deprecated|killed|sunset)\b/i;
 const section_header_pattern = /^[A-Z][A-Z\s/&]{2,30}$/;
 
 function classify(text: string): EntryType {

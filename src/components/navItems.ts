@@ -38,7 +38,13 @@ export function getNavItems(role: string, requestCount = 0): NavItem[] {
     { key: "ledger", href: "/ledger", label: "Living Ledger", icon: LedgerIcon },
     { key: "cv", href: "/cv", label: "Your CV", icon: DocIcon },
     { key: "discover", href: "/discover", label: "Discover roles", icon: CompassIcon },
-    { key: "requests", href: "/requests", label: "Requests", icon: InboxIcon, badge: requestCount },
+    {
+      key: "requests",
+      href: "/requests",
+      label: "Requests",
+      icon: InboxIcon,
+      badge: requestCount,
+    },
     { key: "profile", href: "/profile", label: "Profile", icon: UserIcon },
   ];
 }

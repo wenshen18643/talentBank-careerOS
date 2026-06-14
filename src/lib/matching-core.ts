@@ -208,11 +208,16 @@ export function offlineMatch(
 
   return {
     strength: gradeStrength(job, pre),
-    reason: `${overlap_clause}${evidence_clause}${gap_clause}`.trim() || "Overlaps on logged skills.",
+    reason:
+      `${overlap_clause}${evidence_clause}${gap_clause}`.trim() ||
+      "Overlaps on logged skills.",
     assumptions: [
       "Assessed from logged skill overlap and bullets only; trajectory not yet AI-evaluated (no Kimi key set).",
     ],
-    pros: matched.length > 0 ? [`Has ${matched.join(", ")}`] : ["Has demonstrated logged skills"],
+    pros:
+      matched.length > 0
+        ? [`Has ${matched.join(", ")}`]
+        : ["Has demonstrated logged skills"],
     cons:
       pre.missing_required.length > 0
         ? [`Hasn't logged: ${pre.missing_required.join(", ")}`]

@@ -22,9 +22,7 @@ export async function createUser(input: {
   password: string;
   role: string;
   company?: string | null;
-}): Promise<
-  { ok: true; id: number; role: string } | { ok: false; error: string }
-> {
+}): Promise<{ ok: true; id: number; role: string } | { ok: false; error: string }> {
   const email = input.email.trim().toLowerCase();
   const name = input.name.trim();
   const role = input.role === "recruiter" ? "recruiter" : "candidate";

@@ -115,7 +115,9 @@ describe("parseMatchResponse", () => {
   });
 
   it("tolerates code fences", () => {
-    const assessment = parseMatchResponse('```json\n{"strength":"stretch","reason":"Maybe."}\n```');
+    const assessment = parseMatchResponse(
+      '```json\n{"strength":"stretch","reason":"Maybe."}\n```',
+    );
     expect(assessment.strength).toBe("stretch");
     expect(assessment.assumptions).toEqual([]);
   });

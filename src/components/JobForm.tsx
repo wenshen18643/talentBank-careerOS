@@ -82,7 +82,11 @@ export default function JobForm({
       </div>
 
       <div className="field">
-        <SkillPicker name="nice_skills" legend="Nice-to-have skills" selected={job?.nice_skills} />
+        <SkillPicker
+          name="nice_skills"
+          legend="Nice-to-have skills"
+          selected={job?.nice_skills}
+        />
       </div>
 
       <div className="field">
@@ -95,7 +99,8 @@ export default function JobForm({
           placeholder="Where this person is heading — e.g. 'someone moving from senior into staff-level ownership of reliability', not just their last title."
         />
         <span className={styles.hint}>
-          This is what makes matching forward-looking. The engine weighs it alongside skills.
+          This is what makes matching forward-looking. The engine weighs it alongside
+          skills.
         </span>
       </div>
 

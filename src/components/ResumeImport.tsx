@@ -54,7 +54,9 @@ export default function ResumeImport({
           : "";
       setResult(
         `Imported ${data.count} ${data.count === 1 ? "entry" : "entries"}` +
-          (data.source === "offline" ? " (offline split — refine to sharpen)." : " via Kimi.") +
+          (data.source === "offline"
+            ? " (offline split — refine to sharpen)."
+            : " via Kimi.") +
           skills_note,
       );
       setPasted("");

@@ -65,7 +65,8 @@ describe("parseRefineResponse", () => {
   });
 
   it("extracts JSON wrapped in code fences and prose", () => {
-    const wrapped = 'Sure!\n```json\n{"bullet":"Did a thing","metrics":[],"skills":[]}\n```';
+    const wrapped =
+      'Sure!\n```json\n{"bullet":"Did a thing","metrics":[],"skills":[]}\n```';
     const fields = parseRefineResponse(wrapped);
     expect(fields.bullet).toBe("Did a thing");
     expect(fields.metrics).toEqual([]);
@@ -147,9 +148,24 @@ function fields(bullet: string, skills: string[]): ExtractedFields {
 describe("compileCv", () => {
   it("groups refined entries by type and dedupes skills", () => {
     const entries: Entry[] = [
-      makeEntry({ id: 1, type: "project", status: "refined", extracted: fields("Built A", ["sql", "node"]) }),
-      makeEntry({ id: 2, type: "project", status: "refined", extracted: fields("Built B", ["node"]) }),
-      makeEntry({ id: 3, type: "leadership", status: "refined", extracted: fields("Led C", ["mentoring"]) }),
+      makeEntry({
+        id: 1,
+        type: "project",
+        status: "refined",
+        extracted: fields("Built A", ["sql", "node"]),
+      }),
+      makeEntry({
+        id: 2,
+        type: "project",
+        status: "refined",
+        extracted: fields("Built B", ["node"]),
+      }),
+      makeEntry({
+        id: 3,
+        type: "leadership",
+        status: "refined",
+        extracted: fields("Led C", ["mentoring"]),
+      }),
       makeEntry({ id: 4, type: "win", status: "raw" }),
     ];
     const cv = compileCv(entries);

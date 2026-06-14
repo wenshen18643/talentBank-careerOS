@@ -5,11 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { createJob, deleteJob, getJob, updateJob } from "@/lib/jobs";
 import { canonicalLocation, filterValidSkills } from "@/lib/taxonomy";
-import {
-  getMatchForEmployer,
-  runMatching,
-  setMatchStatus,
-} from "@/lib/matching";
+import { getMatchForEmployer, runMatching, setMatchStatus } from "@/lib/matching";
 import { addMessage, listMessages } from "@/lib/messages";
 
 /**
@@ -20,6 +16,11 @@ import { addMessage, listMessages } from "@/lib/messages";
 
 export type JobFormState = { error: string | null; saved?: boolean };
 
+/**
+ * Extracts and sanitises job fields from a submitted form: trims text, forces
+ * the location to its canonical form, and filters skills through the taxonomy so
+ * only on-list skills are ever persisted.
+ */
 function readJobInput(form_data: FormData) {
   return {
     title: String(form_data.get("title") ?? "").trim(),
@@ -31,6 +32,10 @@ function readJobInput(form_data: FormData) {
   };
 }
 
+/**
+ * Creates a new role for the signed-in recruiter and redirects to its page.
+ * Returns a form error instead of throwing when validation or auth fails.
+ */
 export async function createJobAction(
   _prev: JobFormState,
   form_data: FormData,
@@ -48,6 +53,10 @@ export async function createJobAction(
   redirect(`/employer/jobs/${job.id}`);
 }
 
+/**
+ * Saves edits to an existing role the recruiter owns and revalidates its views.
+ * Returns a form error rather than throwing on bad input or missing ownership.
+ */
 export async function updateJobAction(
   _prev: JobFormState,
   form_data: FormData,
@@ -67,6 +76,10 @@ export async function updateJobAction(
   return { error: null, saved: true };
 }
 
+/**
+ * Deletes a role the recruiter owns, then redirects back to the employer home.
+ * Silently no-ops when auth fails or the job id is malformed.
+ */
 export async function deleteJobAction(form_data: FormData): Promise<void> {
   const user = await requireRole("recruiter");
   if (!user) return;
@@ -76,6 +89,10 @@ export async function deleteJobAction(form_data: FormData): Promise<void> {
   redirect("/employer");
 }
 
+/**
+ * Runs the two-stage matching engine for one of the recruiter's roles and
+ * revalidates the job page so freshly surfaced candidates appear.
+ */
 export async function runMatchingAction(form_data: FormData): Promise<void> {
   const user = await requireRole("recruiter");
   if (!user) return;
@@ -85,13 +102,21 @@ export async function runMatchingAction(form_data: FormData): Promise<void> {
   revalidatePath(`/employer/jobs/${job_id}`);
 }
 
+/**
+ * Approves or rejects a surfaced match. On the first approval it seeds an
+ * opening outreach message that cites the AI's match reason, so the candidate
+ * sees why they were picked. Ignores invalid ids or decisions.
+ */
 export async function decideMatchAction(form_data: FormData): Promise<void> {
   const user = await requireRole("recruiter");
   if (!user) return;
 
   const match_id = Number(form_data.get("match_id"));
   const decision = String(form_data.get("decision"));
-  if (!Number.isInteger(match_id) || (decision !== "approved" && decision !== "rejected")) {
+  if (
+    !Number.isInteger(match_id) ||
+    (decision !== "approved" && decision !== "rejected")
+  ) {
     return;
   }
 
@@ -112,6 +137,10 @@ export async function decideMatchAction(form_data: FormData): Promise<void> {
   if (match) revalidatePath(`/employer/jobs/${match.job_id}`);
 }
 
+/**
+ * Posts a recruiter reply into an existing match conversation they own and
+ * revalidates the job page. No-ops on empty bodies or unauthorised access.
+ */
 export async function employerReplyAction(form_data: FormData): Promise<void> {
   const user = await requireRole("recruiter");
   if (!user) return;
@@ -124,4 +153,3 @@ export async function employerReplyAction(form_data: FormData): Promise<void> {
   await addMessage({ match_id, sender_id: user.id, body });
   revalidatePath(`/employer/jobs/${match.job_id}`);
 }
-

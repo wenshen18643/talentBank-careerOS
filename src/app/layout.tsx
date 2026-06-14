@@ -21,11 +21,7 @@ export const metadata: Metadata = {
     "A living record of what you actually did, turned into a CV that tells the truth — and matching that looks forward, not back.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${newsreader.variable}`}>
       <body>{children}</body>

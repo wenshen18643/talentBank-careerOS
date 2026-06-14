@@ -1,9 +1,5 @@
 import { supabase } from "@/lib/db";
-import {
-  type Entry,
-  type EntryType,
-  type ExtractedFields,
-} from "@/lib/entries-core";
+import { type Entry, type EntryType, type ExtractedFields } from "@/lib/entries-core";
 
 /**
  * Database-backed repository for Living Ledger entries. Rows store the
@@ -23,6 +19,10 @@ type EntryRow = {
   created_at: string;
 };
 
+/**
+ * Converts a raw database row into a typed {@link Entry}, parsing the stored
+ * `extracted` JSON and normalising the status to the `raw` | `refined` union.
+ */
 function hydrate(row: EntryRow): Entry {
   return {
     id: row.id,
@@ -30,15 +30,16 @@ function hydrate(row: EntryRow): Entry {
     type: row.type as EntryType,
     raw_text: row.raw_text,
     title: row.title,
-    extracted: row.extracted
-      ? (JSON.parse(row.extracted) as ExtractedFields)
-      : null,
+    extracted: row.extracted ? (JSON.parse(row.extracted) as ExtractedFields) : null,
     status: row.status === "refined" ? "refined" : "raw",
     occurred_at: row.occurred_at,
     created_at: row.created_at,
   };
 }
 
+/**
+ * Returns every entry owned by a user, newest first. Empty array if none.
+ */
 export async function listEntries(user_id: number): Promise<Entry[]> {
   const { data: rows } = await supabase
     .from("entries")
@@ -48,10 +49,11 @@ export async function listEntries(user_id: number): Promise<Entry[]> {
   return (rows as EntryRow[] | null)?.map(hydrate) ?? [];
 }
 
-export async function getEntry(
-  user_id: number,
-  entry_id: number,
-): Promise<Entry | null> {
+/**
+ * Fetches a single entry scoped to its owner, so users cannot read each other's
+ * entries. Returns null when it does not exist or belongs to someone else.
+ */
+export async function getEntry(user_id: number, entry_id: number): Promise<Entry | null> {
   const { data: row } = await supabase
     .from("entries")
     .select("*")
@@ -61,6 +63,10 @@ export async function getEntry(
   return row ? hydrate(row as EntryRow) : null;
 }
 
+/**
+ * Persists a new entry in the unrefined `raw` state, ready for the AI
+ * "Improve & Expand" pass. Throws if the insert fails.
+ */
 export async function createEntry(input: {
   user_id: number;
   type: EntryType;
@@ -86,6 +92,10 @@ export async function createEntry(input: {
   return hydrate(data as EntryRow);
 }
 
+/**
+ * Stores the AI-extracted fields against an entry the user owns and flips its
+ * status to `refined`. Returns the updated entry, or null if the write failed.
+ */
 export async function applyRefinement(
   user_id: number,
   entry_id: number,
@@ -105,13 +115,10 @@ export async function applyRefinement(
   return getEntry(user_id, entry_id);
 }
 
-export async function deleteEntry(
-  user_id: number,
-  entry_id: number,
-): Promise<void> {
-  await supabase
-    .from("entries")
-    .delete()
-    .eq("id", entry_id)
-    .eq("user_id", user_id);
+/**
+ * Permanently removes an entry, scoped to its owner so one user can never
+ * delete another's row.
+ */
+export async function deleteEntry(user_id: number, entry_id: number): Promise<void> {
+  await supabase.from("entries").delete().eq("id", entry_id).eq("user_id", user_id);
 }

@@ -19,7 +19,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   }
   if (user.role !== "candidate") {
-    return NextResponse.json({ error: "Only candidates have a ledger." }, { status: 403 });
+    return NextResponse.json(
+      { error: "Only candidates have a ledger." },
+      { status: 403 },
+    );
   }
 
   let resume_text: string;

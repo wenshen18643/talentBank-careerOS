@@ -9,7 +9,9 @@
   border-radius: var(--radius-lg);
   background: var(--surface-raised);
   padding: 1.25rem 1.4rem;
-  transition: border-color 0.15s var(--ease-out-quart), transform 0.15s var(--ease-out-quart);
+  transition:
+    border-color 0.15s var(--ease-out-quart),
+    transform 0.15s var(--ease-out-quart);
 }
 
 .jobCard:hover {

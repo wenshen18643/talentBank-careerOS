@@ -114,7 +114,9 @@ export const malaysia_locations: readonly string[] = [
   "Remote (Malaysia)",
 ] as const;
 
-const location_set = new Set(malaysia_locations.map((location) => location.toLowerCase()));
+const location_set = new Set(
+  malaysia_locations.map((location) => location.toLowerCase()),
+);
 
 export function isValidLocation(value: string): boolean {
   return location_set.has(value.trim().toLowerCase());
@@ -126,6 +128,8 @@ export function isValidLocation(value: string): boolean {
  */
 export function canonicalLocation(value: string | null | undefined): string | null {
   if (!value) return null;
-  const canonical = new Map(malaysia_locations.map((location) => [location.toLowerCase(), location]));
+  const canonical = new Map(
+    malaysia_locations.map((location) => [location.toLowerCase(), location]),
+  );
   return canonical.get(value.trim().toLowerCase()) ?? null;
 }

@@ -148,9 +148,7 @@ async function candidateProfiles(): Promise<CandidateProfile[]> {
     .eq("role", "candidate")
     .neq("skills", "[]")
     .not("skills", "is", null);
-  return await Promise.all(
-    ((rows as CandidateRow[] | null) ?? []).map(toProfile),
-  );
+  return await Promise.all(((rows as CandidateRow[] | null) ?? []).map(toProfile));
 }
 
 async function getCandidateProfile(
@@ -264,9 +262,7 @@ export type DiscoverJob = Job & {
   pipeline_status: "none" | "surfaced" | "approved" | "rejected";
 };
 
-export async function listDiscoverJobs(
-  candidate_id: number,
-): Promise<DiscoverJob[]> {
+export async function listDiscoverJobs(candidate_id: number): Promise<DiscoverJob[]> {
   const profile = await getCandidateProfile(candidate_id);
   if (!profile || profile.skills.length === 0) return [];
 
@@ -276,14 +272,12 @@ export async function listDiscoverJobs(
       .select("*, users!inner(company)")
       .eq("status", "open")
       .order("created_at", { ascending: false }),
-    supabase
-      .from("matches")
-      .select("job_id, status")
-      .eq("candidate_id", candidate_id),
+    supabase.from("matches").select("job_id, status").eq("candidate_id", candidate_id),
   ]);
 
   const typedRows =
-    (rows as unknown as Array<JobRow & { users: { company: string | null } }> | null) ?? [];
+    (rows as unknown as Array<JobRow & { users: { company: string | null } }> | null) ??
+    [];
   const pipeline = new Map(
     ((pipelineRows as Array<{ job_id: number; status: string }> | null) ?? []).map(
       (row) => [row.job_id, row.status],
@@ -352,14 +346,12 @@ export async function findJobMatches(candidate_id: number): Promise<JobMatch[]> 
       .select("*, users!inner(company)")
       .eq("status", "open")
       .order("created_at", { ascending: false }),
-    supabase
-      .from("matches")
-      .select("job_id, status")
-      .eq("candidate_id", candidate_id),
+    supabase.from("matches").select("job_id, status").eq("candidate_id", candidate_id),
   ]);
 
   const typedRows =
-    (rows as unknown as Array<JobRow & { users: { company: string | null } }> | null) ?? [];
+    (rows as unknown as Array<JobRow & { users: { company: string | null } }> | null) ??
+    [];
   const pipeline = new Map(
     ((pipelineRows as Array<{ job_id: number; status: string }> | null) ?? []).map(
       (row) => [row.job_id, row.status],
@@ -399,9 +391,7 @@ export async function findJobMatches(candidate_id: number): Promise<JobMatch[]> 
   }
 
   const strength_rank = { strong: 0, promising: 1, stretch: 2 };
-  return result.sort(
-    (a, b) => strength_rank[a.strength] - strength_rank[b.strength],
-  );
+  return result.sort((a, b) => strength_rank[a.strength] - strength_rank[b.strength]);
 }
 
 export type AutoApplyResult = { applied: number; skipped: number };
@@ -531,9 +521,7 @@ export async function listMatchesForJob(job_id: number): Promise<Match[]> {
     .order("strength", { ascending: true })
     .order("created_at", { ascending: false });
   const customOrder = { strong: 0, promising: 1, stretch: 2 };
-  return (
-    (rows as unknown as MatchSelectRow[] | null)?.map(flattenMatchRow) ?? []
-  )
+  return ((rows as unknown as MatchSelectRow[] | null)?.map(flattenMatchRow) ?? [])
     .sort(
       (a, b) =>
         (customOrder[a.strength as keyof typeof customOrder] ?? 2) -
@@ -626,7 +614,9 @@ export async function listRequestsForCandidate(
     .order("created_at", { ascending: false });
 
   const matches =
-    (rows as unknown as MatchSelectRow[] | null)?.map(flattenMatchRow).map(hydrateMatch) ?? [];
+    (rows as unknown as MatchSelectRow[] | null)
+      ?.map(flattenMatchRow)
+      .map(hydrateMatch) ?? [];
   if (matches.length === 0) return [];
 
   const jobIds = matches.map((m) => m.job_id);

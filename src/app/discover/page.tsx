@@ -31,9 +31,9 @@ export default async function DiscoverPage() {
       <header className={appStyles.pageHead}>
         <h1 className={appStyles.pageTitle}>Discover roles</h1>
         <p className={appStyles.pageLede}>
-          Only roles your profile skills genuinely match — no endless listings.
-          Raise your hand and you enter that employer&apos;s pipeline with a reason
-          attached, same as an engine match.
+          Only roles your profile skills genuinely match — no endless listings. Raise your
+          hand and you enter that employer&apos;s pipeline with a reason attached, same as
+          an engine match.
         </p>
       </header>
 
@@ -41,8 +41,7 @@ export default async function DiscoverPage() {
         <div className={appStyles.empty}>
           <h3>Add your skills first.</h3>
           <p style={{ marginBottom: "1.5rem" }}>
-            We match roles to the skills on your profile. Add a few to see roles
-            you fit.
+            We match roles to the skills on your profile. Add a few to see roles you fit.
           </p>
           <Link href="/profile" className="btn btn-primary">
             Set up your profile
@@ -53,57 +52,80 @@ export default async function DiscoverPage() {
           <FindJobsWorkspace />
 
           <section style={{ marginTop: "3rem" }}>
-            <h2 className={styles.pipelineTitle} style={{ fontSize: "1.4rem", marginBottom: "1.25rem" }}>
+            <h2
+              className={styles.pipelineTitle}
+              style={{ fontSize: "1.4rem", marginBottom: "1.25rem" }}
+            >
               Browse roles you qualify for
             </h2>
             {jobs.length === 0 ? (
               <div className={appStyles.empty}>
                 <h3>No matching roles open right now.</h3>
                 <p>
-                  Nothing open fits your current skills. Broaden your profile or
-                  check back — new roles match automatically.
+                  Nothing open fits your current skills. Broaden your profile or check
+                  back — new roles match automatically.
                 </p>
               </div>
             ) : (
               <div className={styles.jobList}>
-          {jobs.map((job) => (
-            <article key={job.id} className={styles.jobCard} style={{ cursor: "default" }}>
-              <div className={styles.jobCardTop}>
-                <h2 className={styles.jobTitle}>{job.title}</h2>
-              </div>
-              <p className={styles.jobMeta}>
-                {job.employer_company ?? "An employer"} ·{" "}
-                {job.location ?? "Location flexible"}
-              </p>
-              {job.description ? (
-                <p className="muted" style={{ marginTop: "0.6rem", maxWidth: "60ch" }}>
-                  {job.description.slice(0, 180)}
-                  {job.description.length > 180 ? "…" : ""}
-                </p>
-              ) : null}
+                {jobs.map((job) => (
+                  <article
+                    key={job.id}
+                    className={styles.jobCard}
+                    style={{ cursor: "default" }}
+                  >
+                    <div className={styles.jobCardTop}>
+                      <h2 className={styles.jobTitle}>{job.title}</h2>
+                    </div>
+                    <p className={styles.jobMeta}>
+                      {job.employer_company ?? "An employer"} ·{" "}
+                      {job.location ?? "Location flexible"}
+                    </p>
+                    {job.description ? (
+                      <p
+                        className="muted"
+                        style={{ marginTop: "0.6rem", maxWidth: "60ch" }}
+                      >
+                        {job.description.slice(0, 180)}
+                        {job.description.length > 180 ? "…" : ""}
+                      </p>
+                    ) : null}
 
-              <div style={{ marginTop: "0.9rem", display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
-                {job.matched_skills.map((skill) => (
-                  <span key={skill} className="tag">
-                    {skill}
-                  </span>
-                ))}
-              </div>
+                    <div
+                      style={{
+                        marginTop: "0.9rem",
+                        display: "flex",
+                        gap: "0.4rem",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      {job.matched_skills.map((skill) => (
+                        <span key={skill} className="tag">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
 
-              <div className={styles.matchActions}>
-                {job.pipeline_status === "none" ? (
-                  <form action={raiseHandAction}>
-                    <input type="hidden" name="job_id" value={job.id} />
-                    <button type="submit" className="btn btn-primary">
-                      Apply
-                    </button>
-                  </form>
-                ) : (
-                  <span className={job.pipeline_status === "approved" ? styles.replyState : "muted"}>
-                    {pipeline_copy[job.pipeline_status]}
-                  </span>
-                )}
-              </div>
+                    <div className={styles.matchActions}>
+                      {job.pipeline_status === "none" ? (
+                        <form action={raiseHandAction}>
+                          <input type="hidden" name="job_id" value={job.id} />
+                          <button type="submit" className="btn btn-primary">
+                            Apply
+                          </button>
+                        </form>
+                      ) : (
+                        <span
+                          className={
+                            job.pipeline_status === "approved"
+                              ? styles.replyState
+                              : "muted"
+                          }
+                        >
+                          {pipeline_copy[job.pipeline_status]}
+                        </span>
+                      )}
+                    </div>
                   </article>
                 ))}
               </div>

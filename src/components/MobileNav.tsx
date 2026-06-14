@@ -62,7 +62,9 @@ export default function MobileNav({
                 >
                   <item.icon className={styles.navIcon} />
                   {item.label}
-                  {item.badge ? <span className={styles.navBadge}>{item.badge}</span> : null}
+                  {item.badge ? (
+                    <span className={styles.navBadge}>{item.badge}</span>
+                  ) : null}
                 </Link>
               </li>
             ))}

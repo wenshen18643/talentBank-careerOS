@@ -21,7 +21,11 @@ export async function extractResumeText(
       const buffer = Buffer.from(await file.arrayBuffer());
       const parsed = await pdfParse(buffer);
       text = parsed.text;
-    } else if (name.endsWith(".txt") || name.endsWith(".md") || file.type.startsWith("text/")) {
+    } else if (
+      name.endsWith(".txt") ||
+      name.endsWith(".md") ||
+      file.type.startsWith("text/")
+    ) {
       text = await file.text();
     } else {
       return { ok: false, error: supported_note };

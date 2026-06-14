@@ -27,7 +27,9 @@ export default function MessageThread({
               key={message.id}
               className={`${styles.bubble} ${mine ? styles.bubbleMine : styles.bubbleTheirs}`}
             >
-              {!mine ? <span className={styles.bubbleMeta}>{message.sender_name}</span> : null}
+              {!mine ? (
+                <span className={styles.bubbleMeta}>{message.sender_name}</span>
+              ) : null}
               {message.body}
             </div>
           );

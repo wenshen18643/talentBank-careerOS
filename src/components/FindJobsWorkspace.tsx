@@ -20,18 +20,13 @@ const initial_auto_apply: AutoApplyState = { done: false, applied: 0, skipped: 0
  * using the candidate's skills and logged work, then renders the worded fits.
  */
 export default function FindJobsWorkspace() {
-  const [state, runFind, pending] = useActionState(
-    findJobMatchesAction,
-    initial_state,
-  );
+  const [state, runFind, pending] = useActionState(findJobMatchesAction, initial_state);
   const [autoState, runAutoApply, autoApplying] = useActionState(
     autoApplyAction,
     initial_auto_apply,
   );
 
-  const open_matches = state.matches.filter(
-    (match) => match.pipeline_status === "none",
-  );
+  const open_matches = state.matches.filter((match) => match.pipeline_status === "none");
 
   return (
     <>
@@ -57,18 +52,18 @@ export default function FindJobsWorkspace() {
         <div className={appStyles.empty}>
           <h3>Let the engine read your work.</h3>
           <p>
-            Run <strong>Find jobs for me</strong> to scan every open role against
-            your skills and logged experience. Only credible fits — with the
-            reasoning shown — will appear.
+            Run <strong>Find jobs for me</strong> to scan every open role against your
+            skills and logged experience. Only credible fits — with the reasoning shown —
+            will appear.
           </p>
         </div>
       ) : state.matches.length === 0 ? (
         <div className={appStyles.empty}>
           <h3>No strong fits open right now.</h3>
           <p>
-            Nothing open is a credible match for your current skills and logged
-            work yet. Add to your ledger or check back — new roles are assessed
-            each time you run this.
+            Nothing open is a credible match for your current skills and logged work yet.
+            Add to your ledger or check back — new roles are assessed each time you run
+            this.
           </p>
         </div>
       ) : (
@@ -85,7 +80,10 @@ export default function FindJobsWorkspace() {
               ))}
               <div>
                 <strong>Auto-apply to all</strong>
-                <p className="muted" style={{ fontSize: "0.88rem", margin: "0.2rem 0 0" }}>
+                <p
+                  className="muted"
+                  style={{ fontSize: "0.88rem", margin: "0.2rem 0 0" }}
+                >
                   Raise your hand on every credible fit below in one go.
                 </p>
               </div>

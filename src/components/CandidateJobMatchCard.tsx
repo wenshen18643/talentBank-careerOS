@@ -59,7 +59,14 @@ export default function CandidateJobMatchCard({ match }: { match: JobMatch }) {
       ) : null}
 
       {match.matched_skills.length > 0 ? (
-        <div style={{ marginTop: "0.9rem", display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+        <div
+          style={{
+            marginTop: "0.9rem",
+            display: "flex",
+            gap: "0.4rem",
+            flexWrap: "wrap",
+          }}
+        >
           {match.matched_skills.map((skill) => (
             <span key={skill} className="tag">
               {skill}
@@ -72,7 +79,9 @@ export default function CandidateJobMatchCard({ match }: { match: JobMatch }) {
         {match.pipeline_status === "none" ? (
           <RaiseHandButton jobId={match.job_id} />
         ) : (
-          <span className={match.pipeline_status === "approved" ? styles.replyState : "muted"}>
+          <span
+            className={match.pipeline_status === "approved" ? styles.replyState : "muted"}
+          >
             {pipeline_copy[match.pipeline_status]}
           </span>
         )}

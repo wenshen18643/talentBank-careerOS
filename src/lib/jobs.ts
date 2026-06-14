@@ -61,10 +61,7 @@ export async function listJobs(employer_id: number): Promise<Job[]> {
   return (rows as JobRow[] | null)?.map(hydrateJob) ?? [];
 }
 
-export async function getJob(
-  employer_id: number,
-  job_id: number,
-): Promise<Job | null> {
+export async function getJob(employer_id: number, job_id: number): Promise<Job | null> {
   const { data: row } = await supabase
     .from("jobs")
     .select("*")
@@ -92,10 +89,7 @@ type JobInput = {
   criteria: string;
 };
 
-export async function createJob(
-  employer_id: number,
-  input: JobInput,
-): Promise<Job> {
+export async function createJob(employer_id: number, input: JobInput): Promise<Job> {
   const { data, error } = await supabase
     .from("jobs")
     .insert({
@@ -139,13 +133,6 @@ export async function updateJob(
   return getJob(employer_id, job_id);
 }
 
-export async function deleteJob(
-  employer_id: number,
-  job_id: number,
-): Promise<void> {
-  await supabase
-    .from("jobs")
-    .delete()
-    .eq("id", job_id)
-    .eq("employer_id", employer_id);
+export async function deleteJob(employer_id: number, job_id: number): Promise<void> {
+  await supabase.from("jobs").delete().eq("id", job_id).eq("employer_id", employer_id);
 }

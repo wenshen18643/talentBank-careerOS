@@ -67,7 +67,9 @@
   color: var(--ink-soft);
   font-size: 0.94rem;
   font-weight: 500;
-  transition: background 0.15s var(--ease-out-quart), color 0.15s var(--ease-out-quart);
+  transition:
+    background 0.15s var(--ease-out-quart),
+    color 0.15s var(--ease-out-quart);
   white-space: nowrap;
 }
 

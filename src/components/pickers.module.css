@@ -111,7 +111,9 @@
   line-height: 1;
   cursor: pointer;
   opacity: 0.8;
-  transition: opacity 0.12s var(--ease-out-quart), background 0.12s var(--ease-out-quart);
+  transition:
+    opacity 0.12s var(--ease-out-quart),
+    background 0.12s var(--ease-out-quart);
 }
 
 .tagRemove:hover {
@@ -160,7 +162,9 @@
   cursor: pointer;
   font-size: 0.9rem;
   color: var(--ink-soft);
-  transition: background 0.12s var(--ease-out-quart), color 0.12s var(--ease-out-quart);
+  transition:
+    background 0.12s var(--ease-out-quart),
+    color 0.12s var(--ease-out-quart);
 }
 
 .option:hover,

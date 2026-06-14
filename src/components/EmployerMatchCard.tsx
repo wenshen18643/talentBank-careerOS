@@ -104,7 +104,9 @@ export default function EmployerMatchCard({
         <>
           <div className={styles.matchActions}>
             {match.candidate_reply === "accepted" ? (
-              <span className={styles.replyState}>◆ Candidate accepted — the conversation is open</span>
+              <span className={styles.replyState}>
+                ◆ Candidate accepted — the conversation is open
+              </span>
             ) : match.candidate_reply === "declined" ? (
               <span className="muted">Candidate declined for now.</span>
             ) : (

@@ -62,9 +62,9 @@ export default async function JobDetailPage({
         <div className={appStyles.empty}>
           <h3>No candidates surfaced yet.</h3>
           <p>
-            Run <strong>Find matches</strong> to scan the candidate pool against
-            this role&apos;s criteria. Only people whose logged work genuinely
-            overlaps will appear here.
+            Run <strong>Find matches</strong> to scan the candidate pool against this
+            role&apos;s criteria. Only people whose logged work genuinely overlaps will
+            appear here.
           </p>
         </div>
       ) : (
@@ -88,7 +88,10 @@ export default async function JobDetailPage({
 
           {decided.length > 0 ? (
             <section>
-              <h3 className={styles.pipelineTitle} style={{ fontSize: "1.2rem", marginBottom: "1rem" }}>
+              <h3
+                className={styles.pipelineTitle}
+                style={{ fontSize: "1.2rem", marginBottom: "1rem" }}
+              >
                 Reviewed
               </h3>
               {decided.map((match) => (
@@ -105,7 +108,10 @@ export default async function JobDetailPage({
       )}
 
       <section style={{ marginTop: "3rem" }}>
-        <h2 className={styles.pipelineTitle} style={{ fontSize: "1.4rem", marginBottom: "1.25rem" }}>
+        <h2
+          className={styles.pipelineTitle}
+          style={{ fontSize: "1.4rem", marginBottom: "1.25rem" }}
+        >
           Edit this role
         </h2>
         <JobForm action={updateJobAction} job={job} submitLabel="Save changes" />

@@ -42,7 +42,9 @@ export default function SkillPicker({
     const canonical = skills.find((s) => normalise(s) === normalise(skill));
     if (!canonical) return;
     setSelectedSkills((prev) =>
-      prev.some((s) => normalise(s) === normalise(canonical)) ? prev : [...prev, canonical],
+      prev.some((s) => normalise(s) === normalise(canonical))
+        ? prev
+        : [...prev, canonical],
     );
     setQuery("");
     setActiveIndex(0);

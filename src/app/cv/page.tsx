@@ -58,8 +58,8 @@ export default async function CvPage() {
           ) : null}
         </div>
         <p className={appStyles.pageLede}>
-          Compiled live from your refined ledger entries. Nothing here was
-          written the night before — it&apos;s the record you kept all along.
+          Compiled live from your refined ledger entries. Nothing here was written the
+          night before — it&apos;s the record you kept all along.
         </p>
       </header>
 
@@ -67,8 +67,8 @@ export default async function CvPage() {
         <div className={appStyles.empty}>
           <h3>No refined entries yet.</h3>
           <p style={{ marginBottom: "1.5rem" }}>
-            Log work in the ledger, run Improve&nbsp;&amp; Expand on it, and the
-            bullets will appear here automatically.
+            Log work in the ledger, run Improve&nbsp;&amp; Expand on it, and the bullets
+            will appear here automatically.
           </p>
           <Link href="/ledger" className="btn btn-primary">
             Go to the ledger
@@ -87,9 +87,8 @@ export default async function CvPage() {
           {cv.unrefined_count > 0 ? (
             <p className={styles.callout}>
               {cv.unrefined_count} raw{" "}
-              {cv.unrefined_count === 1 ? "entry is" : "entries are"} not refined
-              yet — refine{" "}
-              {cv.unrefined_count === 1 ? "it" : "them"} in the ledger to add{" "}
+              {cv.unrefined_count === 1 ? "entry is" : "entries are"} not refined yet —
+              refine {cv.unrefined_count === 1 ? "it" : "them"} in the ledger to add{" "}
               {cv.unrefined_count === 1 ? "it" : "them"} here.
             </p>
           ) : null}
@@ -99,7 +98,9 @@ export default async function CvPage() {
               <div className={styles.sectionLabel}>Skills</div>
               <div className={styles.skills}>
                 {user.skills.map((skill) => (
-                  <span key={skill} className="tag">{skill}</span>
+                  <span key={skill} className="tag">
+                    {skill}
+                  </span>
                 ))}
               </div>
             </section>
@@ -113,7 +114,9 @@ export default async function CvPage() {
               <ul className={styles.bullets}>
                 {section.bullets.map((item) => (
                   <li key={item.id} className={styles.bullet}>
-                    <span className={styles.bulletMark} aria-hidden>◆</span>
+                    <span className={styles.bulletMark} aria-hidden>
+                      ◆
+                    </span>
                     <span>
                       {item.title ? (
                         <span className={styles.bulletTitle}>{item.title} —</span>

@@ -21,7 +21,10 @@ export default async function SiteNav() {
           <Link href="/#how" className={`${styles.navLink} ${styles.navLinksHideMobile}`}>
             How it works
           </Link>
-          <Link href="/#honest" className={`${styles.navLink} ${styles.navLinksHideMobile}`}>
+          <Link
+            href="/#honest"
+            className={`${styles.navLink} ${styles.navLinksHideMobile}`}
+          >
             Why it&apos;s different
           </Link>
           {user ? (

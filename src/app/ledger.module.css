@@ -38,7 +38,9 @@
   background: var(--surface);
   color: var(--ink-soft);
   cursor: pointer;
-  transition: border-color 0.15s var(--ease-out-quart), color 0.15s var(--ease-out-quart);
+  transition:
+    border-color 0.15s var(--ease-out-quart),
+    color 0.15s var(--ease-out-quart);
 }
 
 .fileDrop:hover,

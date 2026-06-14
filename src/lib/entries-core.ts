@@ -6,13 +6,7 @@
 
 import { extractFirstJsonObject } from "@/lib/json-extract";
 
-export const entry_types = [
-  "project",
-  "decision",
-  "leadership",
-  "skill",
-  "win",
-] as const;
+export const entry_types = ["project", "decision", "leadership", "skill", "win"] as const;
 
 export type EntryType = (typeof entry_types)[number];
 
@@ -38,9 +32,7 @@ export type Entry = {
 };
 
 export function isEntryType(value: unknown): value is EntryType {
-  return (
-    typeof value === "string" && entry_types.includes(value as EntryType)
-  );
+  return typeof value === "string" && entry_types.includes(value as EntryType);
 }
 
 const max_raw_length = 4000;
@@ -56,8 +48,7 @@ export function validateRawEntry(input: {
 }):
   | { ok: true; value: { raw_text: string; type: EntryType; occurred_at: string | null } }
   | { ok: false; error: string } {
-  const raw_text =
-    typeof input.raw_text === "string" ? input.raw_text.trim() : "";
+  const raw_text = typeof input.raw_text === "string" ? input.raw_text.trim() : "";
   if (raw_text.length < 3) {
     return { ok: false, error: "Write at least a few words about what happened." };
   }
@@ -93,7 +84,7 @@ export function buildRefineMessages(entry: {
     "- impact: one sentence on why it mattered, no fabricated numbers.",
     "- metrics: concrete figures present in the raw log only; [] if none.",
     "- skills: 2-6 skills demonstrated.",
-    "- scope: team size / budget / timeframe if stated, else \"\".",
+    '- scope: team size / budget / timeframe if stated, else "".',
     "- bullet: one resume-ready line, starts with a strong verb, <= 240 chars.",
   ].join("\n");
 
@@ -119,7 +110,10 @@ export function parseRefineResponse(raw_response: string): ExtractedFields {
     typeof value === "string" ? value.trim() : "";
   const asStringArray = (value: unknown): string[] =>
     Array.isArray(value)
-      ? value.filter((v): v is string => typeof v === "string").map((v) => v.trim()).filter(Boolean)
+      ? value
+          .filter((v): v is string => typeof v === "string")
+          .map((v) => v.trim())
+          .filter(Boolean)
       : [];
 
   const bullet = asString(parsed.bullet);
@@ -179,13 +173,19 @@ export function offlineRefine(entry: {
  * entries are reported separately so the UI can nudge the user to refine them.
  */
 export function compileCv(entries: Entry[]): {
-  sections: Array<{ type: EntryType; bullets: Array<{ id: number; bullet: string; title: string }> }>;
+  sections: Array<{
+    type: EntryType;
+    bullets: Array<{ id: number; bullet: string; title: string }>;
+  }>;
   skills: string[];
   unrefined_count: number;
 } {
   const refined = entries.filter((e) => e.status === "refined" && e.extracted);
   const skills = new Set<string>();
-  const grouped = new Map<EntryType, Array<{ id: number; bullet: string; title: string }>>();
+  const grouped = new Map<
+    EntryType,
+    Array<{ id: number; bullet: string; title: string }>
+  >();
 
   for (const entry of refined) {
     const fields = entry.extracted as ExtractedFields;
@@ -197,7 +197,10 @@ export function compileCv(entries: Entry[]): {
 
   const sections = entry_types
     .filter((type) => grouped.has(type))
-    .map((type) => ({ type, bullets: grouped.get(type) as Array<{ id: number; bullet: string; title: string }> }));
+    .map((type) => ({
+      type,
+      bullets: grouped.get(type) as Array<{ id: number; bullet: string; title: string }>,
+    }));
 
   return {
     sections,

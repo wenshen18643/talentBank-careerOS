@@ -12,11 +12,7 @@ import styles from "@/app/ledger.module.css";
  * per entry. All mutations hit the JSON API and update local state in place, so
  * logging stays instant and refinement is an explicit, visible step.
  */
-export default function LedgerWorkspace({
-  initialEntries,
-}: {
-  initialEntries: Entry[];
-}) {
+export default function LedgerWorkspace({ initialEntries }: { initialEntries: Entry[] }) {
   const [entries, setEntries] = useState<Entry[]>(initialEntries);
   const [draft, setDraft] = useState("");
   const [type, setType] = useState<EntryType>("project");
@@ -99,7 +95,11 @@ export default function LedgerWorkspace({
               onChange={(event) => setOccurredAt(event.target.value)}
               aria-label="When did this happen (optional)"
             />
-            <button type="submit" className="btn btn-primary" disabled={saving || draft.trim().length < 3}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={saving || draft.trim().length < 3}
+            >
               {saving ? "Saving…" : "Log it"}
             </button>
           </div>
@@ -178,11 +178,17 @@ function LedgerEntry({
       <div className={styles.entryTop}>
         <span className="tag">{entry.type}</span>
         {entry.status === "refined" ? (
-          <span className="muted" style={{ fontSize: "0.82rem" }}>Refined</span>
+          <span className="muted" style={{ fontSize: "0.82rem" }}>
+            Refined
+          </span>
         ) : (
-          <span className="muted" style={{ fontSize: "0.82rem" }}>Raw</span>
+          <span className="muted" style={{ fontSize: "0.82rem" }}>
+            Raw
+          </span>
         )}
-        {entry.occurred_at ? <span className={styles.entryDate}>{entry.occurred_at}</span> : null}
+        {entry.occurred_at ? (
+          <span className={styles.entryDate}>{entry.occurred_at}</span>
+        ) : null}
       </div>
 
       <p className={styles.entryRaw}>{entry.raw_text}</p>
@@ -196,7 +202,9 @@ function LedgerEntry({
                 <div className={styles.metaLabel}>Skills</div>
                 <div className={styles.chips}>
                   {fields.skills.map((skill) => (
-                    <span key={skill} className="tag">{skill}</span>
+                    <span key={skill} className="tag">
+                      {skill}
+                    </span>
                   ))}
                 </div>
               </div>
@@ -206,7 +214,9 @@ function LedgerEntry({
                 <div className={styles.metaLabel}>Metrics found</div>
                 <div className={styles.chips}>
                   {fields.metrics.map((metric) => (
-                    <span key={metric} className="tag">{metric}</span>
+                    <span key={metric} className="tag">
+                      {metric}
+                    </span>
                   ))}
                 </div>
               </div>
@@ -222,7 +232,11 @@ function LedgerEntry({
         </div>
       ) : null}
 
-      {error ? <p className={`error-text ${styles.toast}`} style={{ marginTop: "0.8rem" }}>{error}</p> : null}
+      {error ? (
+        <p className={`error-text ${styles.toast}`} style={{ marginTop: "0.8rem" }}>
+          {error}
+        </p>
+      ) : null}
 
       <div className={styles.entryActions}>
         <button type="button" className="btn btn-ghost" onClick={refine} disabled={busy}>
