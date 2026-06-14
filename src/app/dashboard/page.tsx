@@ -13,8 +13,10 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
   if (user.role === "recruiter") redirect("/employer");
 
-  const entries = await listEntries(user.id);
-  const open_requests = await countOpenRequests(user.id);
+  const [entries, open_requests] = await Promise.all([
+    listEntries(user.id),
+    countOpenRequests(user.id),
+  ]);
   const cv = compileCv(entries);
   const refined = entries.length - cv.unrefined_count;
   const first_name = user.name.split(" ")[0];

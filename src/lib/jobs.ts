@@ -13,7 +13,7 @@ export type Job = JobCriteria & {
   created_at: string;
 };
 
-type JobRow = {
+export type JobRow = {
   id: number;
   employer_id: number;
   title: string;
@@ -37,7 +37,7 @@ export function parseSkillList(raw: string): string[] {
   }
 }
 
-function hydrate(row: JobRow): Job {
+export function hydrateJob(row: JobRow): Job {
   return {
     id: row.id,
     employer_id: row.employer_id,
@@ -58,7 +58,7 @@ export async function listJobs(employer_id: number): Promise<Job[]> {
     .select("*")
     .eq("employer_id", employer_id)
     .order("created_at", { ascending: false });
-  return (rows as JobRow[] | null)?.map(hydrate) ?? [];
+  return (rows as JobRow[] | null)?.map(hydrateJob) ?? [];
 }
 
 export async function getJob(
@@ -71,7 +71,7 @@ export async function getJob(
     .eq("id", job_id)
     .eq("employer_id", employer_id)
     .maybeSingle();
-  return row ? hydrate(row as JobRow) : null;
+  return row ? hydrateJob(row as JobRow) : null;
 }
 
 export async function getJobById(job_id: number): Promise<Job | null> {
@@ -80,7 +80,7 @@ export async function getJobById(job_id: number): Promise<Job | null> {
     .select("*")
     .eq("id", job_id)
     .maybeSingle();
-  return row ? hydrate(row as JobRow) : null;
+  return row ? hydrateJob(row as JobRow) : null;
 }
 
 type JobInput = {
@@ -114,7 +114,7 @@ export async function createJob(
     throw new Error("Could not create job.");
   }
 
-  return hydrate(data as JobRow);
+  return hydrateJob(data as JobRow);
 }
 
 export async function updateJob(

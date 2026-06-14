@@ -22,9 +22,11 @@ export default async function CvPage() {
   if (!user) redirect("/login");
   if (user.role === "recruiter") redirect("/employer");
 
-  const entries = await listEntries(user.id);
+  const [entries, open_requests] = await Promise.all([
+    listEntries(user.id),
+    countOpenRequests(user.id),
+  ]);
   const cv = compileCv(entries);
-  const open_requests = await countOpenRequests(user.id);
 
   return (
     <AppShell user={user} active="cv" requestCount={open_requests}>

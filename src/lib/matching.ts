@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/db";
-import { getJob, getJobById, type Job } from "@/lib/jobs";
+import { getJob, getJobById, hydrateJob, type Job, type JobRow } from "@/lib/jobs";
 import { assessMatch } from "@/lib/kimi";
 import {
   prequalify,
@@ -270,18 +270,20 @@ export async function listDiscoverJobs(
   const profile = await getCandidateProfile(candidate_id);
   if (!profile || profile.skills.length === 0) return [];
 
-  const { data: rows } = await supabase
-    .from("jobs")
-    .select("id, users!inner(company)")
-    .eq("status", "open")
-    .order("created_at", { ascending: false });
+  const [{ data: rows }, { data: pipelineRows }] = await Promise.all([
+    supabase
+      .from("jobs")
+      .select("*, users!inner(company)")
+      .eq("status", "open")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("matches")
+      .select("job_id, status")
+      .eq("candidate_id", candidate_id),
+  ]);
 
-  const typedRows = (rows as unknown as Array<{ id: number; users: { company: string | null } }> | null) ?? [];
-
-  const { data: pipelineRows } = await supabase
-    .from("matches")
-    .select("job_id, status")
-    .eq("candidate_id", candidate_id);
+  const typedRows =
+    (rows as unknown as Array<JobRow & { users: { company: string | null } }> | null) ?? [];
   const pipeline = new Map(
     ((pipelineRows as Array<{ job_id: number; status: string }> | null) ?? []).map(
       (row) => [row.job_id, row.status],
@@ -290,8 +292,7 @@ export async function listDiscoverJobs(
 
   const result: DiscoverJob[] = [];
   for (const row of typedRows) {
-    const job = await getJobById(row.id);
-    if (!job) continue;
+    const job = hydrateJob(row);
     const pre = prequalify(job, profile);
     if (!pre.qualifies) continue;
     const status = pipeline.get(job.id);
@@ -345,18 +346,20 @@ export async function findJobMatches(candidate_id: number): Promise<JobMatch[]> 
   const profile = await getCandidateProfile(candidate_id);
   if (!profile || profile.skills.length === 0) return [];
 
-  const { data: rows } = await supabase
-    .from("jobs")
-    .select("id, users!inner(company)")
-    .eq("status", "open")
-    .order("created_at", { ascending: false });
-  const typedRows =
-    (rows as unknown as Array<{ id: number; users: { company: string | null } }> | null) ?? [];
+  const [{ data: rows }, { data: pipelineRows }] = await Promise.all([
+    supabase
+      .from("jobs")
+      .select("*, users!inner(company)")
+      .eq("status", "open")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("matches")
+      .select("job_id, status")
+      .eq("candidate_id", candidate_id),
+  ]);
 
-  const { data: pipelineRows } = await supabase
-    .from("matches")
-    .select("job_id, status")
-    .eq("candidate_id", candidate_id);
+  const typedRows =
+    (rows as unknown as Array<JobRow & { users: { company: string | null } }> | null) ?? [];
   const pipeline = new Map(
     ((pipelineRows as Array<{ job_id: number; status: string }> | null) ?? []).map(
       (row) => [row.job_id, row.status],
@@ -365,8 +368,7 @@ export async function findJobMatches(candidate_id: number): Promise<JobMatch[]> 
 
   const result: JobMatch[] = [];
   for (const row of typedRows) {
-    const job = await getJobById(row.id);
-    if (!job) continue;
+    const job = hydrateJob(row);
     const pre = prequalify(job, profile);
     if (!pre.qualifies) continue;
 

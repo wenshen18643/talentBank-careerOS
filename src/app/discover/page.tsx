@@ -19,8 +19,12 @@ export default async function DiscoverPage() {
   if (!user) redirect("/login");
   if (user.role === "recruiter") redirect("/employer");
 
-  const open_requests = await countOpenRequests(user.id);
-  const jobs = user.skills.length > 0 ? await listDiscoverJobs(user.id) : [];
+  const [open_requests, jobs] = await Promise.all([
+    countOpenRequests(user.id),
+    user.skills.length > 0
+      ? listDiscoverJobs(user.id)
+      : Promise.resolve([] as Awaited<ReturnType<typeof listDiscoverJobs>>),
+  ]);
 
   return (
     <AppShell user={user} active="discover" requestCount={open_requests}>

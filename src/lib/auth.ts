@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { supabase } from "@/lib/db";
@@ -67,7 +68,12 @@ export async function destroySession(): Promise<void> {
   cookie_store.delete(session_cookie_name);
 }
 
-export async function getCurrentUser(): Promise<SessionUser | null> {
+/**
+ * Resolves the signed-in user from the session cookie. Wrapped in React `cache`
+ * so the auth query runs once per request even when a page and `requireRole`
+ * both ask for it.
+ */
+export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   const cookie_store = await cookies();
   const user_id = readSignedSession(
     cookie_store.get(session_cookie_name)?.value,
@@ -84,7 +90,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     ...(row as Omit<SessionUser, "skills"> & { skills: string }),
     skills: parseSkills(row.skills as string),
   };
-}
+});
 
 function parseSkills(raw: string): string[] {
   try {

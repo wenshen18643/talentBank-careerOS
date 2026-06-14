@@ -17,8 +17,10 @@ export default async function RequestsPage() {
     redirect(current ? "/employer" : "/login");
   }
 
-  const requests = await listRequestsForCandidate(user.id);
-  const open = await countOpenRequests(user.id);
+  const [requests, open] = await Promise.all([
+    listRequestsForCandidate(user.id),
+    countOpenRequests(user.id),
+  ]);
   const messagesByRequest = new Map(
     await Promise.all(
       requests
