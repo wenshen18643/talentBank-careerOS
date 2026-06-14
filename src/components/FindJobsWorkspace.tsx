@@ -2,7 +2,9 @@
 
 import { useActionState } from "react";
 import {
+  autoApplyAction,
   findJobMatchesAction,
+  type AutoApplyState,
   type FindJobsState,
 } from "@/app/actions/candidate";
 import CandidateJobMatchCard from "@/components/CandidateJobMatchCard";
@@ -10,6 +12,7 @@ import appStyles from "@/app/app.module.css";
 import styles from "@/app/employer.module.css";
 
 const initial_state: FindJobsState = { ran: false, matches: [] };
+const initial_auto_apply: AutoApplyState = { done: false, applied: 0, skipped: 0 };
 
 /**
  * The candidate's "Find jobs for me" surface — the mirror of the employer's
@@ -20,6 +23,14 @@ export default function FindJobsWorkspace() {
   const [state, runFind, pending] = useActionState(
     findJobMatchesAction,
     initial_state,
+  );
+  const [autoState, runAutoApply, autoApplying] = useActionState(
+    autoApplyAction,
+    initial_auto_apply,
+  );
+
+  const open_matches = state.matches.filter(
+    (match) => match.pipeline_status === "none",
   );
 
   return (
@@ -62,6 +73,44 @@ export default function FindJobsWorkspace() {
         </div>
       ) : (
         <section>
+          {open_matches.length > 0 ? (
+            <form action={runAutoApply} className={styles.autoApplyBar}>
+              {open_matches.map((match) => (
+                <input
+                  key={match.job_id}
+                  type="hidden"
+                  name="job_id"
+                  value={match.job_id}
+                />
+              ))}
+              <div>
+                <strong>Auto-apply to all</strong>
+                <p className="muted" style={{ fontSize: "0.88rem", margin: "0.2rem 0 0" }}>
+                  Raise your hand on every credible fit below in one go.
+                </p>
+              </div>
+              <button type="submit" className="btn btn-primary" disabled={autoApplying}>
+                {autoApplying ? (
+                  <>
+                    <Spinner />
+                    Applying…
+                  </>
+                ) : (
+                  `Auto-apply (${open_matches.length})`
+                )}
+              </button>
+            </form>
+          ) : null}
+
+          {autoState.done ? (
+            <p className={styles.replyState} style={{ marginBottom: "1.25rem" }}>
+              ✋ Applied to {autoState.applied} role{autoState.applied === 1 ? "" : "s"}
+              {autoState.skipped > 0
+                ? ` · ${autoState.skipped} skipped (fit slipped). Run again to refresh.`
+                : ". Run again to refresh their status."}
+            </p>
+          ) : null}
+
           {state.matches.map((match) => (
             <CandidateJobMatchCard key={match.job_id} match={match} />
           ))}

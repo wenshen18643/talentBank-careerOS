@@ -402,6 +402,27 @@ export async function findJobMatches(candidate_id: number): Promise<JobMatch[]> 
   );
 }
 
+export type AutoApplyResult = { applied: number; skipped: number };
+
+/**
+ * Raises the candidate's hand across many roles in one pass — the auto-apply
+ * path. Each role still goes through `raiseHand`, so the same qualify-and-assess
+ * gate applies per role and a slipped fit is skipped rather than forced through.
+ */
+export async function autoApply(
+  candidate_id: number,
+  job_ids: number[],
+): Promise<AutoApplyResult> {
+  let applied = 0;
+  let skipped = 0;
+  for (const job_id of job_ids) {
+    const { ok } = await raiseHand(candidate_id, job_id);
+    if (ok) applied += 1;
+    else skipped += 1;
+  }
+  return { applied, skipped };
+}
+
 /**
  * Candidate-initiated interest. Surfaces the candidate into a job's pipeline
  * flagged `candidate`, but only when they genuinely qualify — express-interest

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import {
+  autoApply,
   findJobMatches,
   getMatchForCandidate,
   raiseHand,
@@ -56,6 +57,30 @@ export async function findJobMatchesAction(
   const user = await requireRole("candidate");
   if (!user) return { ran: true, matches: [] };
   return { ran: true, matches: await findJobMatches(user.id) };
+}
+
+export type AutoApplyState = { done: boolean; applied: number; skipped: number };
+
+/**
+ * Raises the candidate's hand on every supplied role in one pass. The job ids
+ * come from the assessed matches currently on screen; each is still gated by
+ * `raiseHand`, so this can apply broadly without applying indiscriminately.
+ */
+export async function autoApplyAction(
+  _prev: AutoApplyState,
+  form_data: FormData,
+): Promise<AutoApplyState> {
+  const user = await requireRole("candidate");
+  if (!user) return { done: true, applied: 0, skipped: 0 };
+
+  const job_ids = form_data
+    .getAll("job_id")
+    .map(Number)
+    .filter((id) => Number.isInteger(id));
+
+  const { applied, skipped } = await autoApply(user.id, job_ids);
+  revalidatePath("/discover");
+  return { done: true, applied, skipped };
 }
 
 export type RaiseHandState = { ok: boolean; message: string };
