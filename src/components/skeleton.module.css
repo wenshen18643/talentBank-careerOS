@@ -1,0 +1,57 @@
+.block {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 0%,
+    var(--border) 50%,
+    var(--surface) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: var(--radius-md, 8px);
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.brand {
+  height: 24px;
+  width: 140px;
+  margin: 0.3rem 0.5rem 1.25rem;
+}
+
+.navRow {
+  height: 38px;
+  width: 100%;
+  border-radius: 10px;
+}
+
+.title {
+  height: 38px;
+  width: 280px;
+  max-width: 60%;
+  margin-top: 0.5rem;
+}
+
+.lede {
+  height: 18px;
+  width: 480px;
+  max-width: 80%;
+  margin-top: 1rem;
+}
+
+.cards {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.card {
+  height: 120px;
+  width: 100%;
+}

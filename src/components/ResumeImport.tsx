@@ -119,7 +119,7 @@ export default function ResumeImport({
           {busy ? "Reading…" : "Import & add to ledger"}
         </button>
         <span className="muted" style={{ fontSize: "0.82rem" }}>
-          Nothing is invented — we only split what you wrote.
+          Make it better with AI
         </span>
       </div>
     </form>

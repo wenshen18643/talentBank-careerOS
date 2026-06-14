@@ -19,9 +19,8 @@ export default async function LedgerPage() {
       <header className={styles.pageHead}>
         <h1 className={styles.pageTitle}>The Living Ledger</h1>
         <p className={styles.pageLede}>
-          Log the work as it happens — projects, decisions, the moments you led.
-          When you&apos;re ready, refine any entry into a CV-ready line. We never
-          invent a number you didn&apos;t state.
+          Capture the work in real time: the projects, the decisions, and the leadership moments. 
+          Transform them into high-impact, resume-ready bullet points whenever you're ready
         </p>
       </header>
       <LedgerWorkspace initialEntries={entries} />
