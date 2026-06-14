@@ -95,7 +95,7 @@ export default async function DiscoverPage() {
                   <form action={raiseHandAction}>
                     <input type="hidden" name="job_id" value={job.id} />
                     <button type="submit" className="btn btn-primary">
-                      Raise your hand
+                      Apply
                     </button>
                   </form>
                 ) : (
