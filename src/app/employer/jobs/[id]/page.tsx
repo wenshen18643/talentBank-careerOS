@@ -1,11 +1,13 @@
+import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import JobForm from "@/components/JobForm";
 import EmployerMatchCard from "@/components/EmployerMatchCard";
+import ContentSkeleton from "@/components/ContentSkeleton";
 import { requireRole, getCurrentUser } from "@/lib/auth";
 import { getJob } from "@/lib/jobs";
 import { listMatchesForJob } from "@/lib/matching";
-import { listMessages } from "@/lib/messages";
+import { listMessagesByMatch } from "@/lib/messages";
 import {
   deleteJobAction,
   runMatchingAction,
@@ -30,17 +32,6 @@ export default async function JobDetailPage({
   const job = await getJob(user.id, Number(id));
   if (!job) notFound();
 
-  const matches = await listMatchesForJob(job.id);
-  const surfaced = matches.filter((m) => m.status === "surfaced");
-  const decided = matches.filter((m) => m.status !== "surfaced");
-  const messagesByMatch = new Map(
-    await Promise.all(
-      matches
-        .filter((m) => m.status === "approved")
-        .map(async (m) => [m.id, await listMessages(m.id)] as const),
-    ),
-  );
-
   return (
     <AppShell user={user} active="overview">
       <header className={appStyles.pageHead}>
@@ -58,54 +49,9 @@ export default async function JobDetailPage({
         <RunMatchingForm jobId={job.id} action={runMatchingAction} />
       </div>
 
-      {matches.length === 0 ? (
-        <div className={appStyles.empty}>
-          <h3>No candidates surfaced yet.</h3>
-          <p>
-            Run <strong>Find matches</strong> to scan the candidate pool against this
-            role&apos;s criteria. Only people whose logged work genuinely overlaps will
-            appear here.
-          </p>
-        </div>
-      ) : (
-        <>
-          {surfaced.length > 0 ? (
-            <section style={{ marginBottom: decided.length ? "2.5rem" : 0 }}>
-              {surfaced.map((match) => (
-                <EmployerMatchCard
-                  key={match.id}
-                  match={match}
-                  employerId={user.id}
-                  messages={[]}
-                />
-              ))}
-            </section>
-          ) : (
-            <p className="muted" style={{ marginBottom: "1.5rem" }}>
-              Every surfaced candidate has been reviewed.
-            </p>
-          )}
-
-          {decided.length > 0 ? (
-            <section>
-              <h3
-                className={styles.pipelineTitle}
-                style={{ fontSize: "1.2rem", marginBottom: "1rem" }}
-              >
-                Reviewed
-              </h3>
-              {decided.map((match) => (
-                <EmployerMatchCard
-                  key={match.id}
-                  match={match}
-                  employerId={user.id}
-                  messages={messagesByMatch.get(match.id) ?? []}
-                />
-              ))}
-            </section>
-          ) : null}
-        </>
-      )}
+      <Suspense fallback={<ContentSkeleton />}>
+        <Pipeline jobId={job.id} employerId={user.id} />
+      </Suspense>
 
       <section style={{ marginTop: "3rem" }}>
         <h2
@@ -123,5 +69,73 @@ export default async function JobDetailPage({
         </form>
       </section>
     </AppShell>
+  );
+}
+
+/**
+ * Streams a role's surfaced and reviewed candidates behind a Suspense boundary
+ * so the page header, run-matching control, and edit form render without waiting
+ * on the match scan. Message threads for approved candidates are loaded in one
+ * batched query rather than per match.
+ */
+async function Pipeline({ jobId, employerId }: { jobId: number; employerId: number }) {
+  const matches = await listMatchesForJob(jobId);
+  const surfaced = matches.filter((m) => m.status === "surfaced");
+  const decided = matches.filter((m) => m.status !== "surfaced");
+  const messagesByMatch = await listMessagesByMatch(
+    matches.filter((m) => m.status === "approved").map((m) => m.id),
+  );
+
+  if (matches.length === 0) {
+    return (
+      <div className={appStyles.empty}>
+        <h3>No candidates surfaced yet.</h3>
+        <p>
+          Run <strong>Find matches</strong> to scan the candidate pool against this
+          role&apos;s criteria. Only people whose logged work genuinely overlaps will
+          appear here.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {surfaced.length > 0 ? (
+        <section style={{ marginBottom: decided.length ? "2.5rem" : 0 }}>
+          {surfaced.map((match) => (
+            <EmployerMatchCard
+              key={match.id}
+              match={match}
+              employerId={employerId}
+              messages={[]}
+            />
+          ))}
+        </section>
+      ) : (
+        <p className="muted" style={{ marginBottom: "1.5rem" }}>
+          Every surfaced candidate has been reviewed.
+        </p>
+      )}
+
+      {decided.length > 0 ? (
+        <section>
+          <h3
+            className={styles.pipelineTitle}
+            style={{ fontSize: "1.2rem", marginBottom: "1rem" }}
+          >
+            Reviewed
+          </h3>
+          {decided.map((match) => (
+            <EmployerMatchCard
+              key={match.id}
+              match={match}
+              employerId={employerId}
+              messages={messagesByMatch.get(match.id) ?? []}
+            />
+          ))}
+        </section>
+      ) : null}
+    </>
   );
 }

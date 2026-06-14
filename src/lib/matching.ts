@@ -661,23 +661,35 @@ export async function countOpenRequests(candidate_id: number): Promise<number> {
   return count ?? 0;
 }
 
-export async function matchCountsByStatus(job_id: number): Promise<{
-  surfaced: number;
-  approved: number;
-}> {
-  const [{ count: surfaced }, { count: approved }] = await Promise.all([
-    supabase
-      .from("matches")
-      .select("*", { count: "exact", head: true })
-      .eq("job_id", job_id)
-      .eq("status", "surfaced"),
-    supabase
-      .from("matches")
-      .select("*", { count: "exact", head: true })
-      .eq("job_id", job_id)
-      .eq("status", "approved"),
-  ]);
-  return { surfaced: surfaced ?? 0, approved: approved ?? 0 };
+export type StatusCounts = { surfaced: number; approved: number };
+
+/**
+ * Tallies surfaced/approved match counts for many jobs in a single query,
+ * returning a map keyed by job id with a zeroed entry for every requested job.
+ * Replaces the per-job count fan-out so an employer's overview costs one
+ * round-trip regardless of how many roles they've posted.
+ */
+export async function matchCountsByJob(
+  job_ids: number[],
+): Promise<Map<number, StatusCounts>> {
+  const counts = new Map<number, StatusCounts>(
+    job_ids.map((id) => [id, { surfaced: 0, approved: 0 }]),
+  );
+  if (job_ids.length === 0) return counts;
+
+  const { data: rows } = await supabase
+    .from("matches")
+    .select("job_id, status")
+    .in("job_id", job_ids)
+    .in("status", ["surfaced", "approved"]);
+
+  for (const row of (rows as Array<{ job_id: number; status: string }> | null) ?? []) {
+    const entry = counts.get(row.job_id);
+    if (!entry) continue;
+    if (row.status === "surfaced") entry.surfaced += 1;
+    else if (row.status === "approved") entry.approved += 1;
+  }
+  return counts;
 }
 
 export type { Job };

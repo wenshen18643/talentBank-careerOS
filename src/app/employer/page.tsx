@@ -1,9 +1,11 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
+import ContentSkeleton from "@/components/ContentSkeleton";
 import { requireRole, getCurrentUser } from "@/lib/auth";
 import { listJobs } from "@/lib/jobs";
-import { matchCountsByStatus } from "@/lib/matching";
+import { matchCountsByJob } from "@/lib/matching";
 import { ArrowIcon, PlusIcon } from "@/components/icons";
 import appStyles from "@/app/app.module.css";
 import styles from "@/app/employer.module.css";
@@ -14,15 +16,6 @@ export default async function EmployerOverviewPage() {
     const current = await getCurrentUser();
     redirect(current ? "/dashboard" : "/login");
   }
-
-  const jobs = await listJobs(user.id);
-  const countsByJob = new Map(
-    (
-      await Promise.all(
-        jobs.map(async (job) => ({ job, counts: await matchCountsByStatus(job.id) })),
-      )
-    ).map(({ job, counts }) => [job.id, counts]),
-  );
 
   return (
     <AppShell user={user} active="overview">
@@ -35,61 +28,75 @@ export default async function EmployerOverviewPage() {
         </p>
       </header>
 
-      {jobs.length === 0 ? (
-        <div className={appStyles.empty}>
-          <h3>No roles yet.</h3>
-          <p style={{ marginBottom: "1.5rem" }}>
-            Post your first role to start surfacing candidates.
-          </p>
-          <Link href="/employer/jobs/new" className="btn btn-primary">
-            <PlusIcon width={18} height={18} />
-            Post a role
-          </Link>
-        </div>
-      ) : (
-        <>
-          <div style={{ marginBottom: "1.5rem" }}>
-            <Link href="/employer/jobs/new" className="btn btn-primary">
-              <PlusIcon width={18} height={18} />
-              Post a role
-            </Link>
-          </div>
-          <div className={styles.jobList}>
-            {jobs.map((job) => {
-              const counts = countsByJob.get(job.id) ?? { surfaced: 0, approved: 0 };
-              return (
-                <Link
-                  key={job.id}
-                  href={`/employer/jobs/${job.id}`}
-                  className={styles.jobCard}
-                >
-                  <div className={styles.jobCardTop}>
-                    <h2 className={styles.jobTitle}>{job.title}</h2>
-                    <ArrowIcon
-                      width={20}
-                      height={20}
-                      style={{ color: "var(--accent)" }}
-                    />
-                  </div>
-                  <p className={styles.jobMeta}>
-                    {job.location ?? "Location flexible"} · {job.required_skills.length}{" "}
-                    required skill
-                    {job.required_skills.length === 1 ? "" : "s"}
-                  </p>
-                  <div className={styles.jobCounts}>
-                    <span>
-                      <strong>{counts.surfaced}</strong> awaiting review
-                    </span>
-                    <span>
-                      <strong>{counts.approved}</strong> approved
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </>
-      )}
+      <Suspense fallback={<ContentSkeleton />}>
+        <RoleList employerId={user.id} />
+      </Suspense>
     </AppShell>
+  );
+}
+
+/**
+ * Streams the employer's roles and their pipeline counts behind a Suspense
+ * boundary so the surrounding chrome paints immediately. Counts come from a
+ * single batched query rather than a per-job fan-out.
+ */
+async function RoleList({ employerId }: { employerId: number }) {
+  const jobs = await listJobs(employerId);
+  const countsByJob = await matchCountsByJob(jobs.map((job) => job.id));
+
+  if (jobs.length === 0) {
+    return (
+      <div className={appStyles.empty}>
+        <h3>No roles yet.</h3>
+        <p style={{ marginBottom: "1.5rem" }}>
+          Post your first role to start surfacing candidates.
+        </p>
+        <Link href="/employer/jobs/new" className="btn btn-primary">
+          <PlusIcon width={18} height={18} />
+          Post a role
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div style={{ marginBottom: "1.5rem" }}>
+        <Link href="/employer/jobs/new" className="btn btn-primary">
+          <PlusIcon width={18} height={18} />
+          Post a role
+        </Link>
+      </div>
+      <div className={styles.jobList}>
+        {jobs.map((job) => {
+          const counts = countsByJob.get(job.id) ?? { surfaced: 0, approved: 0 };
+          return (
+            <Link
+              key={job.id}
+              href={`/employer/jobs/${job.id}`}
+              className={styles.jobCard}
+            >
+              <div className={styles.jobCardTop}>
+                <h2 className={styles.jobTitle}>{job.title}</h2>
+                <ArrowIcon width={20} height={20} style={{ color: "var(--accent)" }} />
+              </div>
+              <p className={styles.jobMeta}>
+                {job.location ?? "Location flexible"} · {job.required_skills.length}{" "}
+                required skill
+                {job.required_skills.length === 1 ? "" : "s"}
+              </p>
+              <div className={styles.jobCounts}>
+                <span>
+                  <strong>{counts.surfaced}</strong> awaiting review
+                </span>
+                <span>
+                  <strong>{counts.approved}</strong> approved
+                </span>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </>
   );
 }
