@@ -1,0 +1,338 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  background: oklch(0.992 0.001 250 / 0.82);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.navInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.brandMark {
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+}
+
+.navLink {
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  transition: color 0.16s var(--ease-out-quart);
+}
+
+.navLink:hover {
+  color: var(--ink);
+}
+
+@media (max-width: 680px) {
+  .navLinksHideMobile {
+    display: none;
+  }
+}
+
+/* Hero */
+.hero {
+  padding-block: clamp(3.5rem, 9vw, 7rem) clamp(3rem, 7vw, 5.5rem);
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+}
+
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--accent-deep);
+  background: var(--accent-tint);
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  margin-bottom: 1.4rem;
+}
+
+.heroTitle {
+  font-size: clamp(2.6rem, 6vw, 4.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+}
+
+.heroTitle em {
+  font-style: italic;
+  color: var(--accent-deep);
+}
+
+.heroLede {
+  margin-top: 1.5rem;
+  font-size: clamp(1.05rem, 1.6vw, 1.22rem);
+  color: var(--ink-soft);
+  max-width: 46ch;
+}
+
+.heroActions {
+  margin-top: 2.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.heroNote {
+  margin-top: 1.3rem;
+  font-size: 0.86rem;
+  color: var(--ink-faint);
+}
+
+/* Trajectory visual */
+.scene {
+  position: relative;
+  aspect-ratio: 5 / 4.4;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.sceneSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.sceneLabel {
+  position: absolute;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: drawPath 1.8s var(--ease-out-quart) 0.2s forwards;
+}
+
+.pathGhost {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 5;
+}
+
+.node {
+  fill: var(--surface-raised);
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+@keyframes drawPath {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Section scaffolding */
+.section {
+  padding-block: clamp(3.5rem, 8vw, 6rem);
+}
+
+.sectionDark {
+  background: var(--ink-canvas);
+  color: oklch(0.96 0.004 258);
+}
+
+.sectionDark :global(h2),
+.sectionDark :global(h3) {
+  color: oklch(0.97 0.004 258);
+}
+
+.sectionHead {
+  max-width: 38ch;
+  margin-bottom: 2.8rem;
+}
+
+.sectionHead h2 {
+  font-size: clamp(1.9rem, 3.6vw, 2.9rem);
+  letter-spacing: -0.022em;
+}
+
+.sectionHead p {
+  margin-top: 1rem;
+  color: var(--ink-soft);
+  font-size: 1.05rem;
+}
+
+.sectionDark .sectionHead p {
+  color: var(--ink-canvas-soft);
+}
+
+/* Promises — editorial rows, not a card grid */
+.promises {
+  display: grid;
+  gap: 0;
+}
+
+.promise {
+  display: grid;
+  grid-template-columns: minmax(0, 7rem) 1fr;
+  gap: clamp(1rem, 4vw, 3rem);
+  padding-block: 2rem;
+  border-top: 1px solid var(--border);
+  align-items: start;
+}
+
+.promise:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.promiseIcon {
+  width: 40px;
+  height: 40px;
+  color: var(--accent);
+}
+
+.promise h3 {
+  font-size: 1.4rem;
+  letter-spacing: -0.015em;
+}
+
+.promise p {
+  margin-top: 0.6rem;
+  color: var(--ink-soft);
+  max-width: 58ch;
+}
+
+/* Ledger preview */
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+}
+
+@media (max-width: 860px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ledgerCard {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ledgerRaw {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  line-height: 1.55;
+}
+
+.ledgerArrow {
+  align-self: center;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.ledgerBullet {
+  font-size: 1rem;
+  line-height: 1.55;
+  padding: 0.9rem 1rem;
+  background: var(--accent-tint);
+  border-radius: var(--radius);
+  color: var(--ink);
+}
+
+.metricRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* CTA */
+.cta {
+  text-align: center;
+  padding-block: clamp(4rem, 9vw, 7rem);
+}
+
+.cta h2 {
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  letter-spacing: -0.025em;
+  max-width: 16ch;
+  margin-inline: auto;
+}
+
+.cta p {
+  margin-top: 1.2rem;
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding-block: 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--ink-faint);
+  font-size: 0.88rem;
+}

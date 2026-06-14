@@ -1,0 +1,233 @@
+.importBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 1.1rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  margin-bottom: 1.25rem;
+}
+
+.importPanel {
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  display: grid;
+  gap: 0.9rem;
+  animation: enter 0.35s var(--ease-out-quart) both;
+}
+
+.importTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fileDrop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.1rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease-out-quart), color 0.15s var(--ease-out-quart);
+}
+
+.fileDrop:hover,
+.fileDrop:focus-within {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.importOr {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+}
+
+.importResult {
+  font-size: 0.9rem;
+  color: var(--accent-deep);
+  font-weight: 500;
+}
+
+.composer {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  padding: clamp(1.1rem, 3vw, 1.6rem);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+}
+
+.composerRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+  align-items: center;
+}
+
+.typeChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.typeChip {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  transition: all 0.15s var(--ease-out-quart);
+}
+
+.typeChip:hover {
+  border-color: var(--ink-soft);
+}
+
+.typeChipActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.composerActions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dateInput {
+  width: auto;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.list {
+  display: grid;
+  gap: 1rem;
+}
+
+.entry {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  padding: 1.25rem;
+  animation: enter 0.4s var(--ease-out-quart) both;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry {
+    animation: none;
+  }
+}
+
+.entryTop {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
+}
+
+.entryDate {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+}
+
+.entryRaw {
+  color: var(--ink-soft);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.refined {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  animation: enter 0.4s var(--ease-out-quart) both;
+}
+
+.refinedBullet {
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.refinedMeta {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+  font-size: 0.9rem;
+}
+
+.metaLabel {
+  color: var(--ink-faint);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.sourceNote {
+  margin-top: 0.85rem;
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.entryActions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid var(--accent-tint);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.toast {
+  font-size: 0.85rem;
+  color: var(--warn);
+}

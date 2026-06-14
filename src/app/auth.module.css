@@ -1,0 +1,107 @@
+.shell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 820px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .aside {
+    display: none;
+  }
+}
+
+.aside {
+  background: var(--ink-canvas);
+  color: oklch(0.96 0.004 258);
+  padding: clamp(2rem, 5vw, 4rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.asideBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: oklch(0.97 0.004 258);
+}
+
+.asideMark {
+  width: 24px;
+  height: 24px;
+  color: var(--accent);
+}
+
+.asideQuote {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  max-width: 18ch;
+}
+
+.asideMeta {
+  color: var(--ink-canvas-soft);
+  font-size: 0.92rem;
+}
+
+.main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.5rem, 5vw, 3rem);
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.cardTitle {
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  letter-spacing: -0.02em;
+}
+
+.cardLede {
+  margin-top: 0.6rem;
+  color: var(--ink-soft);
+}
+
+.form {
+  margin-top: 2rem;
+  display: grid;
+  gap: 1.1rem;
+}
+
+.submit {
+  width: 100%;
+  margin-top: 0.4rem;
+}
+
+.alt {
+  margin-top: 1.6rem;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+}
+
+.alt a {
+  color: var(--accent-deep);
+  font-weight: 500;
+}
+
+.alt a:hover {
+  text-decoration: underline;
+}
+
+.formError {
+  background: var(--warn-tint);
+  color: oklch(0.42 0.12 45);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.9rem;
+}

@@ -1,0 +1,81 @@
+.doc {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow);
+  padding: clamp(1.75rem, 5vw, 3.25rem);
+}
+
+.docHead {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.75rem;
+}
+
+.docName {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  letter-spacing: -0.02em;
+}
+
+.docMeta {
+  margin-top: 0.4rem;
+  color: var(--ink-soft);
+}
+
+.section {
+  margin-bottom: 1.9rem;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionLabel {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-deep);
+  margin-bottom: 0.9rem;
+}
+
+.bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.bullet {
+  display: grid;
+  grid-template-columns: 1.1rem 1fr;
+  gap: 0.6rem;
+  line-height: 1.55;
+}
+
+.bulletMark {
+  color: var(--accent);
+  margin-top: 0.1rem;
+}
+
+.bulletTitle {
+  font-weight: 600;
+  margin-right: 0.4rem;
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.callout {
+  margin-bottom: 2rem;
+  padding: 1rem 1.25rem;
+  background: var(--accent-tint);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 0.95rem;
+}
