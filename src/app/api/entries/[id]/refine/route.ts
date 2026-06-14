@@ -23,12 +23,12 @@ export async function POST(
     return NextResponse.json({ error: "Bad entry id." }, { status: 400 });
   }
 
-  const entry = getEntry(user.id, entry_id);
+  const entry = await getEntry(user.id, entry_id);
   if (!entry) {
     return NextResponse.json({ error: "Entry not found." }, { status: 404 });
   }
 
   const result = await refineEntry({ type: entry.type, raw_text: entry.raw_text });
-  const updated = applyRefinement(user.id, entry_id, result.fields);
+  const updated = await applyRefinement(user.id, entry_id, result.fields);
   return NextResponse.json({ entry: updated, source: result.source, note: result.note });
 }

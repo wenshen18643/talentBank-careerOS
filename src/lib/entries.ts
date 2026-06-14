@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { supabase } from "@/lib/db";
 import {
   type Entry,
   type EntryType,
@@ -30,64 +30,88 @@ function hydrate(row: EntryRow): Entry {
     type: row.type as EntryType,
     raw_text: row.raw_text,
     title: row.title,
-    extracted: row.extracted ? (JSON.parse(row.extracted) as ExtractedFields) : null,
+    extracted: row.extracted
+      ? (JSON.parse(row.extracted) as ExtractedFields)
+      : null,
     status: row.status === "refined" ? "refined" : "raw",
     occurred_at: row.occurred_at,
     created_at: row.created_at,
   };
 }
 
-export function listEntries(user_id: number): Entry[] {
-  const rows = getDb()
-    .prepare(`SELECT * FROM entries WHERE user_id = ? ORDER BY created_at DESC`)
-    .all(user_id) as EntryRow[];
-  return rows.map(hydrate);
+export async function listEntries(user_id: number): Promise<Entry[]> {
+  const { data: rows } = await supabase
+    .from("entries")
+    .select("*")
+    .eq("user_id", user_id)
+    .order("created_at", { ascending: false });
+  return (rows as EntryRow[] | null)?.map(hydrate) ?? [];
 }
 
-export function getEntry(user_id: number, entry_id: number): Entry | null {
-  const row = getDb()
-    .prepare(`SELECT * FROM entries WHERE id = ? AND user_id = ?`)
-    .get(entry_id, user_id) as EntryRow | undefined;
-  return row ? hydrate(row) : null;
+export async function getEntry(
+  user_id: number,
+  entry_id: number,
+): Promise<Entry | null> {
+  const { data: row } = await supabase
+    .from("entries")
+    .select("*")
+    .eq("id", entry_id)
+    .eq("user_id", user_id)
+    .maybeSingle();
+  return row ? hydrate(row as EntryRow) : null;
 }
 
-export function createEntry(input: {
+export async function createEntry(input: {
   user_id: number;
   type: EntryType;
   raw_text: string;
   occurred_at: string | null;
-}): Entry {
-  const result = getDb()
-    .prepare(
-      `INSERT INTO entries (user_id, type, raw_text, occurred_at, status)
-       VALUES (@user_id, @type, @raw_text, @occurred_at, 'raw')`,
-    )
-    .run(input);
-  return getEntry(input.user_id, Number(result.lastInsertRowid)) as Entry;
+}): Promise<Entry> {
+  const { data, error } = await supabase
+    .from("entries")
+    .insert({
+      user_id: input.user_id,
+      type: input.type,
+      raw_text: input.raw_text,
+      occurred_at: input.occurred_at,
+      status: "raw",
+    })
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    throw new Error("Could not create entry.");
+  }
+
+  return hydrate(data as EntryRow);
 }
 
-export function applyRefinement(
+export async function applyRefinement(
   user_id: number,
   entry_id: number,
   fields: ExtractedFields,
-): Entry | null {
-  getDb()
-    .prepare(
-      `UPDATE entries
-       SET extracted = @extracted, title = @title, status = 'refined'
-       WHERE id = @id AND user_id = @user_id`,
-    )
-    .run({
-      id: entry_id,
-      user_id,
-      title: fields.title,
+): Promise<Entry | null> {
+  const { error } = await supabase
+    .from("entries")
+    .update({
       extracted: JSON.stringify(fields),
-    });
+      title: fields.title,
+      status: "refined",
+    })
+    .eq("id", entry_id)
+    .eq("user_id", user_id);
+
+  if (error) return null;
   return getEntry(user_id, entry_id);
 }
 
-export function deleteEntry(user_id: number, entry_id: number): void {
-  getDb()
-    .prepare(`DELETE FROM entries WHERE id = ? AND user_id = ?`)
-    .run(entry_id, user_id);
+export async function deleteEntry(
+  user_id: number,
+  entry_id: number,
+): Promise<void> {
+  await supabase
+    .from("entries")
+    .delete()
+    .eq("id", entry_id)
+    .eq("user_id", user_id);
 }

@@ -13,14 +13,13 @@
     "kimi:check": "node --env-file=.env scripts/check-kimi.mjs"
   },
   "dependencies": {
-    "better-sqlite3": "^11.8.1",
+    "@supabase/supabase-js": "^2.108.1",
     "next": "15.1.6",
     "pdf-parse": "^1.1.1",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

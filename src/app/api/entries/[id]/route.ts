@@ -16,10 +16,10 @@ export async function DELETE(
 
   const { id } = await context.params;
   const entry_id = Number(id);
-  if (!Number.isInteger(entry_id) || !getEntry(user.id, entry_id)) {
+  if (!Number.isInteger(entry_id) || !(await getEntry(user.id, entry_id))) {
     return NextResponse.json({ error: "Entry not found." }, { status: 404 });
   }
 
-  deleteEntry(user.id, entry_id);
+  await deleteEntry(user.id, entry_id);
   return NextResponse.json({ ok: true });
 }

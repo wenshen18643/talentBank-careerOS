@@ -27,16 +27,18 @@ export default async function JobDetailPage({
   }
 
   const { id } = await params;
-  const job = getJob(user.id, Number(id));
+  const job = await getJob(user.id, Number(id));
   if (!job) notFound();
 
-  const matches = listMatchesForJob(job.id);
+  const matches = await listMatchesForJob(job.id);
   const surfaced = matches.filter((m) => m.status === "surfaced");
   const decided = matches.filter((m) => m.status !== "surfaced");
   const messagesByMatch = new Map(
-    matches
-      .filter((m) => m.status === "approved")
-      .map((m) => [m.id, listMessages(m.id)]),
+    await Promise.all(
+      matches
+        .filter((m) => m.status === "approved")
+        .map(async (m) => [m.id, await listMessages(m.id)] as const),
+    ),
   );
 
   return (

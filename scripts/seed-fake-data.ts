@@ -3,7 +3,7 @@ import { createJob } from "../src/lib/jobs";
 import { createEntry, applyRefinement } from "../src/lib/entries";
 import { runMatching } from "../src/lib/matching";
 import { skills } from "../src/lib/taxonomy";
-import { getDb } from "../src/lib/db";
+import { supabase } from "../src/lib/db";
 import type { EntryType } from "../src/lib/entries-core";
 
 const firstNames = [
@@ -119,18 +119,20 @@ function makeName(index: number): string {
   return `${firstNames[index % firstNames.length]} ${lastNames[(index * 7) % lastNames.length]}`;
 }
 
-function getOrCreateUser(input: {
+async function getOrCreateUser(input: {
   email: string;
   name: string;
   password: string;
   role: "recruiter" | "candidate";
   company?: string;
-}): { id: number; role: string } | null {
-  const existing = getDb()
-    .prepare("SELECT id, role FROM users WHERE email = ?")
-    .get(input.email.trim().toLowerCase()) as { id: number; role: string } | undefined;
-  if (existing) return existing;
-  const result = createUser(input);
+}): Promise<{ id: number; role: string } | null> {
+  const { data: existing } = await supabase
+    .from("users")
+    .select("id, role")
+    .eq("email", input.email.trim().toLowerCase())
+    .maybeSingle();
+  if (existing) return existing as { id: number; role: string };
+  const result = await createUser(input);
   if (!result.ok) {
     console.log(`Failed to create ${input.email}: ${result.error}`);
     return null;
@@ -143,7 +145,7 @@ const runSuffix = Math.floor(Math.random() * 100000).toString(36);
 async function main() {
   const recruiters: { id: number; company: string }[] = [];
   for (let i = 0; i < companies.length; i++) {
-    const user = getOrCreateUser({
+    const user = await getOrCreateUser({
       email: `recruiter${i + 1}@test.dev`,
       name: `Recruiter ${i + 1}`,
       password: "password123",
@@ -157,10 +159,12 @@ async function main() {
 
   // Fallback: use any existing recruiters in the DB
   if (recruiters.length === 0) {
-    const existing = getDb()
-      .prepare("SELECT id, company FROM users WHERE role = 'recruiter' ORDER BY id")
-      .all() as Array<{ id: number; company: string | null }>;
-    for (const rec of existing) {
+    const { data: existing } = await supabase
+      .from("users")
+      .select("id, company")
+      .eq("role", "recruiter")
+      .order("id");
+    for (const rec of (existing as Array<{ id: number; company: string | null }> | null) ?? []) {
       if (rec.company) recruiters.push({ id: rec.id, company: rec.company });
     }
   }
@@ -169,7 +173,7 @@ async function main() {
   for (let i = 0; i < jobTemplates.length; i++) {
     const tmpl = jobTemplates[i];
     const recruiter = recruiters[i % recruiters.length];
-    const job = createJob(recruiter.id, {
+    const job = await createJob(recruiter.id, {
       title: tmpl.title,
       description: `We are hiring a ${tmpl.title} to own critical systems and drive outcomes.`,
       location: rand(["Kuala Lumpur", "Selangor", "Remote (Malaysia)", "Penang", null]),
@@ -188,7 +192,7 @@ async function main() {
   const candidates: { id: number; skills: string[] }[] = [];
   for (let i = 0; i < 50; i++) {
     const candidateSkills = randSubset(skills as string[], 3, 8);
-    const result = createUser({
+    const result = await createUser({
       email: `candidate${i + 1}-${runSuffix}@test.dev`,
       name: makeName(i),
       password: "password123",
@@ -199,15 +203,14 @@ async function main() {
       continue;
     }
 
-    // Update skills directly since updateCandidateProfile is in another module
-    getDb()
-      .prepare("UPDATE users SET headline = ?, location = ?, skills = ? WHERE id = ?")
-      .run(
-        rand(["Senior Engineer", "Staff Engineer", "Engineering Lead", "Product Manager", "Data Scientist", "Designer"]),
-        rand(["Kuala Lumpur", "Selangor", "Penang", "Johor", "Remote (Malaysia)"]),
-        JSON.stringify(candidateSkills),
-        result.id,
-      );
+    await supabase
+      .from("users")
+      .update({
+        headline: rand(["Senior Engineer", "Staff Engineer", "Engineering Lead", "Product Manager", "Data Scientist", "Designer"]),
+        location: rand(["Kuala Lumpur", "Selangor", "Penang", "Johor", "Remote (Malaysia)"]),
+        skills: JSON.stringify(candidateSkills),
+      })
+      .eq("id", result.id);
 
     candidates.push({ id: result.id, skills: candidateSkills });
 
@@ -215,7 +218,7 @@ async function main() {
     for (let j = 0; j < entryCount; j++) {
       const type = rand(entryTypes);
       const bullet = fill(rand(bulletTemplates[type]));
-      const entry = createEntry({
+      const entry = await createEntry({
         user_id: result.id,
         type,
         raw_text: bullet,
@@ -223,7 +226,7 @@ async function main() {
       });
 
       const entrySkills = randSubset(candidateSkills, 1, 3);
-      applyRefinement(result.id, entry.id, {
+      await applyRefinement(result.id, entry.id, {
         title: `${type.charAt(0).toUpperCase() + type.slice(1)}: ${bullet.split(" ").slice(0, 3).join(" ")}`,
         impact: "Improved outcomes for the team.",
         metrics: ["20%", "50%", "2x"].slice(0, randInt(0, 2)),

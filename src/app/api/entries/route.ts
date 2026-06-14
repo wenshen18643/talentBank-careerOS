@@ -25,6 +25,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: validated.error }, { status: 422 });
   }
 
-  const entry = createEntry({ user_id: user.id, ...validated.value });
+  const entry = await createEntry({ user_id: user.id, ...validated.value });
   return NextResponse.json({ entry }, { status: 201 });
 }

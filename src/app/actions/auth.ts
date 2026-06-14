@@ -21,7 +21,7 @@ export async function signupAction(
   form_data: FormData,
 ): Promise<AuthState> {
   const role = String(form_data.get("role") ?? "candidate");
-  const result = createUser({
+  const result = await createUser({
     email: String(form_data.get("email") ?? ""),
     name: String(form_data.get("name") ?? ""),
     password: String(form_data.get("password") ?? ""),
@@ -38,7 +38,7 @@ export async function loginAction(
   _prev: AuthState,
   form_data: FormData,
 ): Promise<AuthState> {
-  const result = authenticateUser(
+  const result = await authenticateUser(
     String(form_data.get("email") ?? ""),
     String(form_data.get("password") ?? ""),
   );

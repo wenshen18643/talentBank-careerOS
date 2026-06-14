@@ -15,7 +15,7 @@ export async function updateProfileAction(
   const user = await requireRole("candidate");
   if (!user) return { error: "Only candidates have a profile.", saved: false };
 
-  updateCandidateProfile(user.id, {
+  await updateCandidateProfile(user.id, {
     headline: String(form_data.get("headline") ?? ""),
     location: String(form_data.get("location") ?? ""),
     skills: form_data.getAll("skills").map(String),
@@ -52,9 +52,9 @@ export async function respondToRequestAction(form_data: FormData): Promise<void>
     return;
   }
 
-  const match = setCandidateReply(user.id, match_id, reply);
+  const match = await setCandidateReply(user.id, match_id, reply);
   if (match) {
-    addMessage({
+    await addMessage({
       match_id,
       sender_id: user.id,
       body:
@@ -73,8 +73,8 @@ export async function candidateReplyAction(form_data: FormData): Promise<void> {
   const body = String(form_data.get("body") ?? "").trim();
   if (!Number.isInteger(match_id) || !body) return;
 
-  const match = getMatchForCandidate(user.id, match_id);
+  const match = await getMatchForCandidate(user.id, match_id);
   if (!match) return;
-  addMessage({ match_id, sender_id: user.id, body });
+  await addMessage({ match_id, sender_id: user.id, body });
   revalidatePath("/requests");
 }

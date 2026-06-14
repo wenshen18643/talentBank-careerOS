@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { supabase } from "@/lib/db";
 import { canonicalLocation, filterValidSkills } from "@/lib/taxonomy";
 
 /**
@@ -7,17 +7,17 @@ import { canonicalLocation, filterValidSkills } from "@/lib/taxonomy";
  * enter the matching surface.
  */
 
-export function updateCandidateProfile(
+export async function updateCandidateProfile(
   user_id: number,
   input: { headline: string; location: string; skills: string[] },
-): void {
+): Promise<void> {
   const headline = input.headline.trim().slice(0, 120) || null;
   const location = canonicalLocation(input.location);
   const skills = filterValidSkills(input.skills);
 
-  getDb()
-    .prepare(
-      `UPDATE users SET headline = ?, location = ?, skills = ? WHERE id = ? AND role = 'candidate'`,
-    )
-    .run(headline, location, JSON.stringify(skills), user_id);
+  await supabase
+    .from("users")
+    .update({ headline, location, skills: JSON.stringify(skills) })
+    .eq("id", user_id)
+    .eq("role", "candidate");
 }

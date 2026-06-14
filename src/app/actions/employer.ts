@@ -43,7 +43,7 @@ export async function createJobAction(
     return { error: "Give the role a title." };
   }
 
-  const job = createJob(user.id, input);
+  const job = await createJob(user.id, input);
   revalidatePath("/employer");
   redirect(`/employer/jobs/${job.id}`);
 }
@@ -61,7 +61,7 @@ export async function updateJobAction(
   const input = readJobInput(form_data);
   if (input.title.length < 3) return { error: "Give the role a title." };
 
-  updateJob(user.id, job_id, input);
+  await updateJob(user.id, job_id, input);
   revalidatePath(`/employer/jobs/${job_id}`);
   revalidatePath("/employer");
   return { error: null, saved: true };
@@ -71,7 +71,7 @@ export async function deleteJobAction(form_data: FormData): Promise<void> {
   const user = await requireRole("recruiter");
   if (!user) return;
   const job_id = Number(form_data.get("job_id"));
-  if (Number.isInteger(job_id)) deleteJob(user.id, job_id);
+  if (Number.isInteger(job_id)) await deleteJob(user.id, job_id);
   revalidatePath("/employer");
   redirect("/employer");
 }
@@ -95,11 +95,11 @@ export async function decideMatchAction(form_data: FormData): Promise<void> {
     return;
   }
 
-  const match = setMatchStatus(user.id, match_id, decision);
+  const match = await setMatchStatus(user.id, match_id, decision);
 
-  if (match && decision === "approved" && listMessages(match.id).length === 0) {
-    const job = getJob(user.id, match.job_id);
-    addMessage({
+  if (match && decision === "approved" && (await listMessages(match.id)).length === 0) {
+    const job = await getJob(user.id, match.job_id);
+    await addMessage({
       match_id: match.id,
       sender_id: user.id,
       body:
@@ -119,9 +119,9 @@ export async function employerReplyAction(form_data: FormData): Promise<void> {
   const body = String(form_data.get("body") ?? "").trim();
   if (!Number.isInteger(match_id) || !body) return;
 
-  const match = getMatchForEmployer(user.id, match_id);
+  const match = await getMatchForEmployer(user.id, match_id);
   if (!match) return;
-  addMessage({ match_id, sender_id: user.id, body });
+  await addMessage({ match_id, sender_id: user.id, body });
   revalidatePath(`/employer/jobs/${match.job_id}`);
 }
 

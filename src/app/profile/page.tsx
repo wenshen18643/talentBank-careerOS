@@ -10,7 +10,7 @@ export default async function ProfilePage() {
   if (!user) redirect("/login");
   if (user.role === "recruiter") redirect("/employer");
 
-  const open_requests = countOpenRequests(user.id);
+  const open_requests = await countOpenRequests(user.id);
 
   return (
     <AppShell user={user} active="profile" requestCount={open_requests}>

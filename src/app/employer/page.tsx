@@ -15,7 +15,11 @@ export default async function EmployerOverviewPage() {
     redirect(current ? "/dashboard" : "/login");
   }
 
-  const jobs = listJobs(user.id);
+  const jobs = await listJobs(user.id);
+  const countsByJob = new Map(
+    (await Promise.all(jobs.map(async (job) => ({ job, counts: await matchCountsByStatus(job.id) }))))
+      .map(({ job, counts }) => [job.id, counts]),
+  );
 
   return (
     <AppShell user={user} active="overview">
@@ -49,7 +53,7 @@ export default async function EmployerOverviewPage() {
           </div>
           <div className={styles.jobList}>
             {jobs.map((job) => {
-              const counts = matchCountsByStatus(job.id);
+              const counts = countsByJob.get(job.id) ?? { surfaced: 0, approved: 0 };
               return (
                 <Link key={job.id} href={`/employer/jobs/${job.id}`} className={styles.jobCard}>
                   <div className={styles.jobCardTop}>

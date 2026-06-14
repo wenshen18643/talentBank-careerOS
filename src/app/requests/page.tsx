@@ -17,8 +17,15 @@ export default async function RequestsPage() {
     redirect(current ? "/employer" : "/login");
   }
 
-  const requests = listRequestsForCandidate(user.id);
-  const open = countOpenRequests(user.id);
+  const requests = await listRequestsForCandidate(user.id);
+  const open = await countOpenRequests(user.id);
+  const messagesByRequest = new Map(
+    await Promise.all(
+      requests
+        .filter((r) => r.candidate_reply === "accepted")
+        .map(async (r) => [r.id, await listMessages(r.id)] as const),
+    ),
+  );
 
   return (
     <AppShell user={user} active="requests" requestCount={open}>
@@ -49,9 +56,7 @@ export default async function RequestsPage() {
               key={request.id}
               request={request}
               candidateId={user.id}
-              messages={
-                request.candidate_reply === "accepted" ? listMessages(request.id) : []
-              }
+              messages={messagesByRequest.get(request.id) ?? []}
             />
           ))}
         </div>

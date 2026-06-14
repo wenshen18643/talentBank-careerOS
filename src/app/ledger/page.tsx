@@ -11,8 +11,8 @@ export default async function LedgerPage() {
   if (!user) redirect("/login");
   if (user.role === "recruiter") redirect("/employer");
 
-  const entries = listEntries(user.id);
-  const open_requests = countOpenRequests(user.id);
+  const entries = await listEntries(user.id);
+  const open_requests = await countOpenRequests(user.id);
 
   return (
     <AppShell user={user} active="ledger" requestCount={open_requests}>

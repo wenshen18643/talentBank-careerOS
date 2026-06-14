@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { getDb } from "@/lib/db";
+import { supabase } from "@/lib/db";
 
 export { hashPassword, verifyPassword } from "@/lib/password";
 
@@ -74,13 +74,16 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   );
   if (user_id === null) return null;
 
-  const row = getDb()
-    .prepare(
-      `SELECT id, email, name, role, headline, location, company, skills FROM users WHERE id = ?`,
-    )
-    .get(user_id) as (Omit<SessionUser, "skills"> & { skills: string }) | undefined;
+  const { data: row } = await supabase
+    .from("users")
+    .select("id, email, name, role, headline, location, company, skills")
+    .eq("id", user_id)
+    .maybeSingle();
   if (!row) return null;
-  return { ...row, skills: parseSkills(row.skills) };
+  return {
+    ...(row as Omit<SessionUser, "skills"> & { skills: string }),
+    skills: parseSkills(row.skills as string),
+  };
 }
 
 function parseSkills(raw: string): string[] {

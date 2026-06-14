@@ -55,13 +55,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const created = drafts.map((draft) =>
-    createEntry({
-      user_id: user.id,
-      type: draft.type,
-      raw_text: draft.raw_text,
-      occurred_at: null,
-    }),
+  const created = await Promise.all(
+    drafts.map((draft) =>
+      createEntry({
+        user_id: user.id,
+        type: draft.type,
+        raw_text: draft.raw_text,
+        occurred_at: null,
+      }),
+    ),
   );
 
   return NextResponse.json({ entries: created, count: created.length, source }, { status: 201 });

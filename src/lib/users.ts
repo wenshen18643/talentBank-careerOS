@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { supabase } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/password";
 
 /**
@@ -16,15 +16,15 @@ export type UserRecord = {
 
 const email_pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function createUser(input: {
+export async function createUser(input: {
   email: string;
   name: string;
   password: string;
   role: string;
   company?: string | null;
-}):
-  | { ok: true; id: number; role: string }
-  | { ok: false; error: string } {
+}): Promise<
+  { ok: true; id: number; role: string } | { ok: false; error: string }
+> {
   const email = input.email.trim().toLowerCase();
   const name = input.name.trim();
   const role = input.role === "recruiter" ? "recruiter" : "candidate";
@@ -42,30 +42,46 @@ export function createUser(input: {
     return { ok: false, error: "Use a password of at least 8 characters." };
   }
 
-  const existing = getDb()
-    .prepare(`SELECT id FROM users WHERE email = ?`)
-    .get(email);
+  const { data: existing } = await supabase
+    .from("users")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
   if (existing) {
     return { ok: false, error: "An account with this email already exists." };
   }
 
-  const result = getDb()
-    .prepare(
-      `INSERT INTO users (email, name, role, password, company) VALUES (?, ?, ?, ?, ?)`,
-    )
-    .run(email, name, role, hashPassword(input.password), company);
-  return { ok: true, id: Number(result.lastInsertRowid), role };
+  const { data, error } = await supabase
+    .from("users")
+    .insert({
+      email,
+      name,
+      role,
+      password: hashPassword(input.password),
+      company,
+    })
+    .select("id, role")
+    .single();
+
+  if (error || !data) {
+    return { ok: false, error: "Could not create account." };
+  }
+
+  return { ok: true, id: data.id, role: data.role as string };
 }
 
-export function authenticateUser(
+export async function authenticateUser(
   email_input: string,
   password: string,
-): { ok: true; id: number } | { ok: false; error: string } {
+): Promise<{ ok: true; id: number } | { ok: false; error: string }> {
   const email = email_input.trim().toLowerCase();
-  const user = getDb()
-    .prepare(`SELECT id, password FROM users WHERE email = ?`)
-    .get(email) as Pick<UserRecord, "id" | "password"> | undefined;
-  if (!user || !verifyPassword(password, user.password)) {
+  const { data: user } = await supabase
+    .from("users")
+    .select("id, password")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (!user || !verifyPassword(password, user.password as string)) {
     return { ok: false, error: "Email or password is incorrect." };
   }
   return { ok: true, id: user.id };

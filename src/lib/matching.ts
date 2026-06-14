@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { supabase } from "@/lib/db";
 import { getJob, getJobById, type Job } from "@/lib/jobs";
 import { assessMatch } from "@/lib/kimi";
 import {
@@ -102,12 +102,14 @@ type CandidateRow = {
   skills: string;
 };
 
-function collectBullets(candidate_id: number): string[] {
-  const rows = getDb()
-    .prepare(`SELECT extracted FROM entries WHERE user_id = ? AND status = 'refined'`)
-    .all(candidate_id) as Array<{ extracted: string | null }>;
+async function collectBullets(candidate_id: number): Promise<string[]> {
+  const { data: rows } = await supabase
+    .from("entries")
+    .select("extracted")
+    .eq("user_id", candidate_id)
+    .eq("status", "refined");
   const bullets: string[] = [];
-  for (const row of rows) {
+  for (const row of (rows as Array<{ extracted: string | null }> | null) ?? []) {
     if (!row.extracted) continue;
     const fields = JSON.parse(row.extracted) as ExtractedFields;
     if (fields.bullet) bullets.push(fields.bullet);
@@ -115,7 +117,7 @@ function collectBullets(candidate_id: number): string[] {
   return bullets;
 }
 
-function toProfile(row: CandidateRow): CandidateProfile {
+async function toProfile(row: CandidateRow): Promise<CandidateProfile> {
   let skills: string[] = [];
   try {
     const parsed = JSON.parse(row.skills);
@@ -129,7 +131,7 @@ function toProfile(row: CandidateRow): CandidateProfile {
     headline: row.headline,
     location: row.location,
     skills,
-    bullets: collectBullets(row.id),
+    bullets: await collectBullets(row.id),
   };
 }
 
@@ -139,42 +141,72 @@ function toProfile(row: CandidateRow): CandidateProfile {
  * the matching surface — while bullets come from refined ledger entries as
  * evidence for the assessment.
  */
-function candidateProfiles(): CandidateProfile[] {
-  const rows = getDb()
-    .prepare(
-      `SELECT id, name, headline, location, skills FROM users
-       WHERE role = 'candidate' AND skills IS NOT NULL AND skills != '[]'`,
-    )
-    .all() as CandidateRow[];
-  return rows.map(toProfile);
+async function candidateProfiles(): Promise<CandidateProfile[]> {
+  const { data: rows } = await supabase
+    .from("users")
+    .select("id, name, headline, location, skills")
+    .eq("role", "candidate")
+    .neq("skills", "[]")
+    .not("skills", "is", null);
+  return await Promise.all(
+    ((rows as CandidateRow[] | null) ?? []).map(toProfile),
+  );
 }
 
-function getCandidateProfile(candidate_id: number): CandidateProfile | null {
-  const row = getDb()
-    .prepare(
-      `SELECT id, name, headline, location, skills FROM users
-       WHERE id = ? AND role = 'candidate'`,
-    )
-    .get(candidate_id) as CandidateRow | undefined;
-  return row ? toProfile(row) : null;
+async function getCandidateProfile(
+  candidate_id: number,
+): Promise<CandidateProfile | null> {
+  const { data: row } = await supabase
+    .from("users")
+    .select("id, name, headline, location, skills")
+    .eq("id", candidate_id)
+    .eq("role", "candidate")
+    .maybeSingle();
+  return row ? toProfile(row as CandidateRow) : null;
 }
 
-const upsert_match = `
-  INSERT INTO matches (job_id, candidate_id, status, strength, reason, assumptions, pros, cons, source, initiated_by)
-  VALUES (@job_id, @candidate_id, 'surfaced', @strength, @reason, @assumptions, @pros, @cons, @source, @initiated_by)
-  ON CONFLICT (job_id, candidate_id) DO UPDATE SET
-    strength = excluded.strength,
-    reason = excluded.reason,
-    assumptions = excluded.assumptions,
-    pros = excluded.pros,
-    cons = excluded.cons,
-    source = excluded.source,
-    initiated_by = CASE
-      WHEN excluded.initiated_by = 'candidate' THEN 'candidate'
-      ELSE matches.initiated_by
-    END
-  WHERE matches.status = 'surfaced'
-`;
+type MatchInsert = {
+  job_id: number;
+  candidate_id: number;
+  status: "surfaced";
+  strength: MatchStrength;
+  reason: string;
+  assumptions: string;
+  pros: string;
+  cons: string;
+  source: "kimi" | "offline";
+  initiated_by: "engine" | "candidate";
+};
+
+async function upsertSurfacedMatch(payload: MatchInsert): Promise<void> {
+  const { data: existing } = await supabase
+    .from("matches")
+    .select("status, initiated_by")
+    .eq("job_id", payload.job_id)
+    .eq("candidate_id", payload.candidate_id)
+    .maybeSingle();
+
+  if (existing) {
+    if (existing.status !== "surfaced") return;
+    await supabase
+      .from("matches")
+      .update({
+        strength: payload.strength,
+        reason: payload.reason,
+        assumptions: payload.assumptions,
+        pros: payload.pros,
+        cons: payload.cons,
+        source: payload.source,
+        initiated_by:
+          payload.initiated_by === "candidate" ? "candidate" : existing.initiated_by,
+      })
+      .eq("job_id", payload.job_id)
+      .eq("candidate_id", payload.candidate_id);
+    return;
+  }
+
+  await supabase.from("matches").insert(payload);
+}
 
 export type MatchingSummary = {
   evaluated: number;
@@ -190,11 +222,10 @@ export async function runMatching(
   employer_id: number,
   job_id: number,
 ): Promise<MatchingSummary> {
-  const job = getJob(employer_id, job_id);
+  const job = await getJob(employer_id, job_id);
   if (!job) throw new Error("Job not found.");
 
-  const profiles = candidateProfiles();
-  const upsert = getDb().prepare(upsert_match);
+  const profiles = await candidateProfiles();
   let surfaced = 0;
 
   for (const candidate of profiles) {
@@ -204,9 +235,10 @@ export async function runMatching(
     const { assessment, source } = await assessMatch(job, candidate, pre);
     if (assessment.strength === "stretch") continue;
 
-    upsert.run({
+    await upsertSurfacedMatch({
       job_id: job.id,
       candidate_id: candidate.id,
+      status: "surfaced",
       strength: assessment.strength,
       reason: assessment.reason,
       assumptions: JSON.stringify(assessment.assumptions),
@@ -232,36 +264,40 @@ export type DiscoverJob = Job & {
   pipeline_status: "none" | "surfaced" | "approved" | "rejected";
 };
 
-export function listDiscoverJobs(candidate_id: number): DiscoverJob[] {
-  const profile = getCandidateProfile(candidate_id);
+export async function listDiscoverJobs(
+  candidate_id: number,
+): Promise<DiscoverJob[]> {
+  const profile = await getCandidateProfile(candidate_id);
   if (!profile || profile.skills.length === 0) return [];
 
-  const rows = getDb()
-    .prepare(
-      `SELECT j.id, emp.company AS employer_company
-       FROM jobs j JOIN users emp ON emp.id = j.employer_id
-       WHERE j.status = 'open' ORDER BY j.created_at DESC`,
-    )
-    .all() as Array<{ id: number; employer_company: string | null }>;
+  const { data: rows } = await supabase
+    .from("jobs")
+    .select("id, users!inner(company)")
+    .eq("status", "open")
+    .order("created_at", { ascending: false });
 
+  const typedRows = (rows as unknown as Array<{ id: number; users: { company: string | null } }> | null) ?? [];
+
+  const { data: pipelineRows } = await supabase
+    .from("matches")
+    .select("job_id, status")
+    .eq("candidate_id", candidate_id);
   const pipeline = new Map(
-    (
-      getDb()
-        .prepare(`SELECT job_id, status FROM matches WHERE candidate_id = ?`)
-        .all(candidate_id) as Array<{ job_id: number; status: string }>
-    ).map((row) => [row.job_id, row.status]),
+    ((pipelineRows as Array<{ job_id: number; status: string }> | null) ?? []).map(
+      (row) => [row.job_id, row.status],
+    ),
   );
 
   const result: DiscoverJob[] = [];
-  for (const row of rows) {
-    const job = getJobById(row.id);
+  for (const row of typedRows) {
+    const job = await getJobById(row.id);
     if (!job) continue;
     const pre = prequalify(job, profile);
     if (!pre.qualifies) continue;
     const status = pipeline.get(job.id);
     result.push({
       ...job,
-      employer_company: row.employer_company,
+      employer_company: row.users?.company ?? null,
       matched_skills: [...pre.matched_required, ...pre.matched_nice],
       pipeline_status:
         status === "approved"
@@ -285,8 +321,8 @@ export async function raiseHand(
   candidate_id: number,
   job_id: number,
 ): Promise<{ ok: boolean; reason: string }> {
-  const profile = getCandidateProfile(candidate_id);
-  const job = getJobById(job_id);
+  const profile = await getCandidateProfile(candidate_id);
+  const job = await getJobById(job_id);
   if (!profile || !job || job.status !== "open") {
     return { ok: false, reason: "That role isn't open." };
   }
@@ -298,85 +334,161 @@ export async function raiseHand(
 
   const { assessment, source } = await assessMatch(job, profile, pre);
   if (assessment.strength === "stretch") {
-    return { ok: false, reason: "Your fit for this role looks like a stretch right now." };
+    return {
+      ok: false,
+      reason: "Your fit for this role looks like a stretch right now.",
+    };
   }
 
-  getDb()
-    .prepare(upsert_match)
-    .run({
-      job_id,
-      candidate_id,
-      strength: assessment.strength,
-      reason: assessment.reason,
-      assumptions: JSON.stringify(assessment.assumptions),
-      pros: JSON.stringify(assessment.pros),
-      cons: JSON.stringify(assessment.cons),
-      source,
-      initiated_by: "candidate",
-    });
+  await upsertSurfacedMatch({
+    job_id,
+    candidate_id,
+    status: "surfaced",
+    strength: assessment.strength,
+    reason: assessment.reason,
+    assumptions: JSON.stringify(assessment.assumptions),
+    pros: JSON.stringify(assessment.pros),
+    cons: JSON.stringify(assessment.cons),
+    source,
+    initiated_by: "candidate",
+  });
   return { ok: true, reason: "You've raised your hand for this role." };
 }
 
-const match_select = `
-  SELECT m.*, u.name AS candidate_name, u.headline AS candidate_headline,
-         u.location AS candidate_location
-  FROM matches m
-  JOIN users u ON u.id = m.candidate_id
+const matchSelect = `
+  id,
+  job_id,
+  candidate_id,
+  status,
+  strength,
+  reason,
+  assumptions,
+  pros,
+  cons,
+  source,
+  initiated_by,
+  candidate_reply,
+  created_at,
+  users!inner(name, headline, location)
 `;
 
-export function listMatchesForJob(job_id: number): Match[] {
-  const rows = getDb()
-    .prepare(
-      `${match_select} WHERE m.job_id = ?
-       ORDER BY CASE m.strength WHEN 'strong' THEN 0 WHEN 'promising' THEN 1 ELSE 2 END,
-                m.created_at DESC`,
+type MatchSelectRow = {
+  id: number;
+  job_id: number;
+  candidate_id: number;
+  status: string;
+  strength: string;
+  reason: string;
+  assumptions: string;
+  pros: string;
+  cons: string;
+  source: string;
+  initiated_by: string;
+  candidate_reply: string | null;
+  created_at: string;
+  users: { name: string; headline: string | null; location: string | null };
+};
+
+function flattenMatchRow(row: MatchSelectRow): MatchRow {
+  return {
+    id: row.id,
+    job_id: row.job_id,
+    candidate_id: row.candidate_id,
+    status: row.status,
+    strength: row.strength,
+    reason: row.reason,
+    assumptions: row.assumptions,
+    pros: row.pros,
+    cons: row.cons,
+    source: row.source,
+    initiated_by: row.initiated_by,
+    candidate_reply: row.candidate_reply,
+    created_at: row.created_at,
+    candidate_name: row.users?.name ?? "",
+    candidate_headline: row.users?.headline ?? null,
+    candidate_location: row.users?.location ?? null,
+  };
+}
+
+export async function listMatchesForJob(job_id: number): Promise<Match[]> {
+  const { data: rows } = await supabase
+    .from("matches")
+    .select(matchSelect)
+    .eq("job_id", job_id)
+    .order("strength", { ascending: true })
+    .order("created_at", { ascending: false });
+  const customOrder = { strong: 0, promising: 1, stretch: 2 };
+  return (
+    (rows as unknown as MatchSelectRow[] | null)?.map(flattenMatchRow) ?? []
+  )
+    .sort(
+      (a, b) =>
+        (customOrder[a.strength as keyof typeof customOrder] ?? 2) -
+          (customOrder[b.strength as keyof typeof customOrder] ?? 2) ||
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     )
-    .all(job_id) as MatchRow[];
-  return rows.map(hydrateMatch);
+    .map(hydrateMatch);
 }
 
-export function getMatchForEmployer(employer_id: number, match_id: number): Match | null {
-  const row = getDb()
-    .prepare(
-      `${match_select} JOIN jobs j ON j.id = m.job_id
-       WHERE m.id = ? AND j.employer_id = ?`,
-    )
-    .get(match_id, employer_id) as MatchRow | undefined;
-  return row ? hydrateMatch(row) : null;
+export async function getMatchForEmployer(
+  employer_id: number,
+  match_id: number,
+): Promise<Match | null> {
+  const { data: row } = await supabase
+    .from("matches")
+    .select(`${matchSelect}, jobs!inner(employer_id)`)
+    .eq("id", match_id)
+    .eq("jobs.employer_id", employer_id)
+    .maybeSingle();
+  return row ? hydrateMatch(flattenMatchRow(row as unknown as MatchSelectRow)) : null;
 }
 
-export function getMatchForCandidate(candidate_id: number, match_id: number): Match | null {
-  const row = getDb()
-    .prepare(`${match_select} WHERE m.id = ? AND m.candidate_id = ?`)
-    .get(match_id, candidate_id) as MatchRow | undefined;
-  return row ? hydrateMatch(row) : null;
+export async function getMatchForCandidate(
+  candidate_id: number,
+  match_id: number,
+): Promise<Match | null> {
+  const { data: row } = await supabase
+    .from("matches")
+    .select(matchSelect)
+    .eq("id", match_id)
+    .eq("candidate_id", candidate_id)
+    .maybeSingle();
+  return row ? hydrateMatch(flattenMatchRow(row as unknown as MatchSelectRow)) : null;
 }
 
-export function setMatchStatus(
+export async function setMatchStatus(
   employer_id: number,
   match_id: number,
   status: "approved" | "rejected",
-): Match | null {
-  getDb()
-    .prepare(
-      `UPDATE matches SET status = ?
-       WHERE id = ? AND job_id IN (SELECT id FROM jobs WHERE employer_id = ?)`,
-    )
-    .run(status, match_id, employer_id);
+): Promise<Match | null> {
+  const { data: jobRows } = await supabase
+    .from("jobs")
+    .select("id")
+    .eq("employer_id", employer_id);
+  const jobIds = ((jobRows as Array<{ id: number }> | null) ?? []).map((r) => r.id);
+  if (jobIds.length === 0) return null;
+
+  await supabase
+    .from("matches")
+    .update({ status })
+    .eq("id", match_id)
+    .in("job_id", jobIds);
+
   return getMatchForEmployer(employer_id, match_id);
 }
 
-export function setCandidateReply(
+export async function setCandidateReply(
   candidate_id: number,
   match_id: number,
   reply: "accepted" | "declined",
-): Match | null {
-  getDb()
-    .prepare(
-      `UPDATE matches SET candidate_reply = ?
-       WHERE id = ? AND candidate_id = ? AND status = 'approved'`,
-    )
-    .run(reply, match_id, candidate_id);
+): Promise<Match | null> {
+  await supabase
+    .from("matches")
+    .update({ candidate_reply: reply })
+    .eq("id", match_id)
+    .eq("candidate_id", candidate_id)
+    .eq("status", "approved");
+
   return getMatchForCandidate(candidate_id, match_id);
 }
 
@@ -390,59 +502,79 @@ export type CandidateRequest = Match & {
   employer_company: string | null;
 };
 
-export function listRequestsForCandidate(candidate_id: number): CandidateRequest[] {
-  const rows = getDb()
-    .prepare(
-      `SELECT m.*, u.name AS candidate_name, u.headline AS candidate_headline,
-              u.location AS candidate_location,
-              j.title AS job_title, emp.name AS employer_name,
-              emp.company AS employer_company
-       FROM matches m
-       JOIN users u ON u.id = m.candidate_id
-       JOIN jobs j ON j.id = m.job_id
-       JOIN users emp ON emp.id = j.employer_id
-       WHERE m.candidate_id = ? AND m.status = 'approved'
-       ORDER BY m.created_at DESC`,
-    )
-    .all(candidate_id) as Array<
-    MatchRow & {
-      job_title: string;
-      employer_name: string;
-      employer_company: string | null;
-    }
-  >;
+export async function listRequestsForCandidate(
+  candidate_id: number,
+): Promise<CandidateRequest[]> {
+  const { data: rows } = await supabase
+    .from("matches")
+    .select(matchSelect)
+    .eq("candidate_id", candidate_id)
+    .eq("status", "approved")
+    .order("created_at", { ascending: false });
 
-  return rows.map((row) => ({
-    ...hydrateMatch(row),
-    job_title: row.job_title,
-    employer_name: row.employer_name,
-    employer_company: row.employer_company,
+  const matches =
+    (rows as unknown as MatchSelectRow[] | null)?.map(flattenMatchRow).map(hydrateMatch) ?? [];
+  if (matches.length === 0) return [];
+
+  const jobIds = matches.map((m) => m.job_id);
+  const { data: jobRows } = await supabase
+    .from("jobs")
+    .select("id, title, employer_id, users!inner(name, company)")
+    .in("id", jobIds);
+
+  const jobMap = new Map(
+    (
+      (jobRows as unknown as Array<{
+        id: number;
+        title: string;
+        employer_id: number;
+        users: { name: string; company: string | null };
+      }> | null) ?? []
+    ).map((j) => [
+      j.id,
+      {
+        title: j.title,
+        employer_name: j.users?.name ?? "",
+        employer_company: j.users?.company ?? null,
+      },
+    ]),
+  );
+
+  return matches.map((m) => ({
+    ...m,
+    job_title: jobMap.get(m.job_id)?.title ?? "",
+    employer_name: jobMap.get(m.job_id)?.employer_name ?? "",
+    employer_company: jobMap.get(m.job_id)?.employer_company ?? null,
   }));
 }
 
-export function countOpenRequests(candidate_id: number): number {
-  const row = getDb()
-    .prepare(
-      `SELECT COUNT(*) AS n FROM matches
-       WHERE candidate_id = ? AND status = 'approved' AND candidate_reply IS NULL`,
-    )
-    .get(candidate_id) as { n: number };
-  return row.n;
+export async function countOpenRequests(candidate_id: number): Promise<number> {
+  const { count } = await supabase
+    .from("matches")
+    .select("*", { count: "exact", head: true })
+    .eq("candidate_id", candidate_id)
+    .eq("status", "approved")
+    .is("candidate_reply", null);
+  return count ?? 0;
 }
 
-export function matchCountsByStatus(job_id: number): {
+export async function matchCountsByStatus(job_id: number): Promise<{
   surfaced: number;
   approved: number;
-} {
-  const row = getDb()
-    .prepare(
-      `SELECT
-         SUM(CASE WHEN status = 'surfaced' THEN 1 ELSE 0 END) AS surfaced,
-         SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) AS approved
-       FROM matches WHERE job_id = ?`,
-    )
-    .get(job_id) as { surfaced: number | null; approved: number | null };
-  return { surfaced: row.surfaced ?? 0, approved: row.approved ?? 0 };
+}> {
+  const [{ count: surfaced }, { count: approved }] = await Promise.all([
+    supabase
+      .from("matches")
+      .select("*", { count: "exact", head: true })
+      .eq("job_id", job_id)
+      .eq("status", "surfaced"),
+    supabase
+      .from("matches")
+      .select("*", { count: "exact", head: true })
+      .eq("job_id", job_id)
+      .eq("status", "approved"),
+  ]);
+  return { surfaced: surfaced ?? 0, approved: approved ?? 0 };
 }
 
 export type { Job };
